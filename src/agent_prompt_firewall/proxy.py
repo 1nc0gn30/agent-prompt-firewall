@@ -132,15 +132,21 @@ class ProxyRequestHandler(BaseHTTPRequestHandler):
                     "source_ip": source_ip,
                 })
             
-            GLOBAL_BROADCASTER.broadcast("threat_blocked", {
+            event_payload = {
                 "id": scan_id,
                 "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "threat_type": assessment.threat_type,
+                "threat_score": assessment.score,
                 "score": assessment.score,
-                "details": assessment.details,
-                "snippet": combined_input[:100],
+                "threat_type": assessment.threat_type,
+                "redacted_count": 0,
+                "blocked": True,
                 "action": "BLOCKED",
-            })
+                "source": "proxy:8099",
+                "details": assessment.details,
+                "snippet": combined_input[:120],
+                "latency_ms": elapsed_ms,
+            }
+            GLOBAL_BROADCASTER.broadcast("threat_event", event_payload)
 
             self.send_response(403)
             self._set_cors_headers()
@@ -266,15 +272,21 @@ class ProxyRequestHandler(BaseHTTPRequestHandler):
                 "source_ip": source_ip,
             })
 
-        GLOBAL_BROADCASTER.broadcast("scan_completed", {
+        event_payload = {
             "id": scan_id,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "threat_type": assessment.threat_type,
+            "threat_score": assessment.score,
             "score": assessment.score,
-            "blocked": False,
+            "threat_type": assessment.threat_type,
             "redacted_count": total_redacted,
+            "blocked": False,
+            "action": "PASSED",
+            "source": "proxy:8099",
+            "details": assessment.details,
+            "snippet": combined_input[:120],
             "latency_ms": total_latency,
-        })
+        }
+        GLOBAL_BROADCASTER.broadcast("threat_event", event_payload)
 
         self.send_response(resp_status)
         self._set_cors_headers()

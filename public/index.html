@@ -576,6 +576,305 @@
       color: #F87171;
     }
 
+    /* Real-Time Live Interception Radar & SSE Stream */
+    .live-stream-section {
+      margin: 2.25rem 0;
+    }
+
+    .live-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pulse-live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #10B981;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10B981;
+      box-shadow: 0 0 10px #10B981;
+      animation: sse-pulse 1.8s infinite ease-in-out;
+    }
+
+    @keyframes sse-pulse {
+      0% { transform: scale(0.85); opacity: 0.5; }
+      50% { transform: scale(1.35); opacity: 1; box-shadow: 0 0 14px #10B981; }
+      100% { transform: scale(0.85); opacity: 0.5; }
+    }
+
+    .live-event-counter {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .live-event-counter strong {
+      color: var(--gold);
+    }
+
+    .live-bento-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1.25rem;
+    }
+
+    .live-pane {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .feed-status {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .live-log-container {
+      max-height: 310px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 6px;
+      margin-top: 10px;
+    }
+
+    .live-log-container::-webkit-scrollbar {
+      width: 5px;
+    }
+    .live-log-container::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 4px;
+    }
+    .live-log-container::-webkit-scrollbar-thumb {
+      background: rgba(212, 175, 55, 0.25);
+      border-radius: 4px;
+    }
+
+    .live-log-empty {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      color: var(--text-muted);
+    }
+
+    .empty-icon {
+      font-size: 2rem;
+      margin-bottom: 8px;
+      opacity: 0.8;
+    }
+
+    .empty-title {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+
+    .empty-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      max-width: 360px;
+      margin: 0 auto;
+      line-height: 1.4;
+    }
+
+    .empty-subtitle code {
+      color: var(--gold);
+      background: rgba(212, 175, 55, 0.1);
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+    }
+
+    .live-log-item {
+      background: rgba(18, 18, 23, 0.85);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--border-accent);
+      border-radius: 8px;
+      padding: 10px 12px;
+      transition: all 0.2s ease;
+      animation: log-slide-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .live-log-item.item-blocked {
+      border-left-color: #EF4444;
+      background: rgba(239, 68, 68, 0.05);
+    }
+
+    .live-log-item.item-passed {
+      border-left-color: #10B981;
+    }
+
+    @keyframes log-slide-in {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .log-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .log-tags {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .log-pill {
+      font-size: 0.68rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.02em;
+    }
+
+    .pill-source-proxy {
+      background: rgba(99, 102, 241, 0.16);
+      color: #A5B4FC;
+      border: 1px solid rgba(99, 102, 241, 0.35);
+    }
+
+    .pill-source-api {
+      background: rgba(212, 175, 55, 0.16);
+      color: var(--gold);
+      border: 1px solid rgba(212, 175, 55, 0.35);
+    }
+
+    .pill-decision-blocked {
+      background: rgba(239, 68, 68, 0.22);
+      color: #F87171;
+      border: 1px solid #EF4444;
+    }
+
+    .pill-decision-passed {
+      background: rgba(16, 185, 129, 0.22);
+      color: #34D399;
+      border: 1px solid #10B981;
+    }
+
+    .pill-threat-type {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .log-timestamp {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .log-snippet {
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      color: #E2E8F0;
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 4px;
+      padding: 5px 8px;
+      margin-bottom: 6px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .log-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .log-meta-score {
+      font-weight: 700;
+    }
+
+    /* Threat Timeline Chart */
+    .threshold-pill {
+      background: rgba(239, 68, 68, 0.15);
+      color: #F87171;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    .chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 230px;
+      margin: 8px 0;
+    }
+
+    #threatTelemetryChart {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .chart-footer-metrics {
+      display: flex;
+      justify-content: space-around;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      font-family: var(--font-mono);
+      margin-top: auto;
+    }
+
+    .chart-metric {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .cm-label {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .cm-val {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
     /* Frosted Locked Compliance Section */
     .compliance-wrapper {
       position: relative;
@@ -767,6 +1066,9 @@
       .compliance-grid {
         grid-template-columns: 1fr;
       }
+      .live-bento-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 480px) {
@@ -919,6 +1221,67 @@
       <div class="stat-card">
         <div class="stat-label">Clean Pipeline Rate</div>
         <div class="stat-value" id="statCleanRate" style="color: var(--emerald);">100%</div>
+      </div>
+    </section>
+
+    <!-- Real-Time SSE Telemetry & Live Interception Radar Feed -->
+    <section class="live-stream-section" id="liveRadarSection" aria-label="Live Interception Radar Feed and Threat Chart">
+      <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <div class="live-badge-row">
+            <span class="pulse-live-indicator" id="liveStreamBadge">
+              <span class="pulse-dot"></span> SSE LIVE RADAR ACTIVE (:8098)
+            </span>
+            <span class="live-event-counter">Intercepted Prompts: <strong id="liveEventCount">0</strong></span>
+          </div>
+          <h2 class="section-title">Live Interception Radar & Threat Telemetry Feed</h2>
+          <p class="section-desc">Broadcasts prompt injection intercepts, secret scrub events, and latency in real time via Server-Sent Events.</p>
+        </div>
+        <div class="live-actions">
+          <button id="btnClearLiveFeed" class="btn btn-outline" style="min-height: 36px; padding: 4px 12px; font-size: 0.8rem;" aria-label="Clear Live Feed">Clear Feed</button>
+        </div>
+      </div>
+
+      <div class="live-bento-grid">
+        <!-- Live Interception Log Feed -->
+        <div class="live-pane feed-pane">
+          <div class="pane-header">
+            <span class="pane-title">Streaming Interception Log Feed</span>
+            <span class="feed-status" id="feedStatusText">Listening on /api/events/stream...</span>
+          </div>
+          <div class="live-log-container" id="liveLogFeed" role="log" aria-live="polite">
+            <div class="live-log-empty" id="liveLogEmpty">
+              <div class="empty-icon" aria-hidden="true">📡</div>
+              <div class="empty-title">Waiting for Prompt Ingestion Stream</div>
+              <div class="empty-subtitle">Send requests through proxy port <code>:8099</code> or test prompts below. Threats and sanitizations stream here in real time with zero page reloads.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-Time Threat Score Timeline & Velocity Chart -->
+        <div class="live-pane chart-pane">
+          <div class="pane-header">
+            <span class="pane-title">Real-Time Threat Score Velocity</span>
+            <span class="threshold-pill">Block Threshold: 0.70</span>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="threatTelemetryChart" height="230" aria-label="Real-time prompt threat score timeline chart"></canvas>
+          </div>
+          <div class="chart-footer-metrics">
+            <div class="chart-metric">
+              <span class="cm-label">Latest Threat Score</span>
+              <span class="cm-val" id="chartLatestScore">0.00</span>
+            </div>
+            <div class="chart-metric">
+              <span class="cm-label">Max Severity</span>
+              <span class="cm-val" id="chartMaxScore" style="color: var(--ruby);">0.00</span>
+            </div>
+            <div class="chart-metric">
+              <span class="cm-label">Streaming Rail</span>
+              <span class="cm-val" style="color: var(--gold);">SSE / 8098</span>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -1103,5 +1466,49 @@
   </footer>
 
   <script src="/firewall_engine.js"></script>
+  <script>
+    // Real-Time EventSource Listener for Agent Prompt Firewall SSE
+    (function initRealTimeRadarStream() {
+      if (typeof window === 'undefined' || !('EventSource' in window)) return;
+      try {
+        const stream = new EventSource('/api/events/stream');
+        window._firewallRadarEventSource = stream;
+
+        stream.addEventListener('connected', function(e) {
+          const badge = document.getElementById('liveStreamBadge');
+          if (badge) {
+            badge.innerHTML = '<span class="pulse-dot"></span> SSE LIVE RADAR ACTIVE (:8098)';
+            badge.style.color = '#10B981';
+          }
+        });
+
+        function handleIncomingEvent(e) {
+          try {
+            const data = JSON.parse(e.data);
+            if (typeof window.dispatchFirewallEvent === 'function') {
+              window.dispatchFirewallEvent(data);
+            }
+          } catch (err) {
+            console.error('[SSE] Failed to parse event payload:', err);
+          }
+        }
+
+        stream.addEventListener('threat_event', handleIncomingEvent);
+        stream.addEventListener('threat_blocked', handleIncomingEvent);
+        stream.addEventListener('scan_completed', handleIncomingEvent);
+        stream.onmessage = handleIncomingEvent;
+
+        stream.onerror = function() {
+          const badge = document.getElementById('liveStreamBadge');
+          if (badge) {
+            badge.innerHTML = '<span class="pulse-dot" style="background:#F59E0B;box-shadow:0 0 8px #F59E0B;"></span> SSE RECONNECTING...';
+            badge.style.color = '#F59E0B';
+          }
+        };
+      } catch (err) {
+        console.warn('[SSE] EventSource stream error:', err);
+      }
+    })();
+  </script>
 </body>
 </html>

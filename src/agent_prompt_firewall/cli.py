@@ -181,6 +181,20 @@ def cmd_run(args: argparse.Namespace):
     sys.exit(exit_code)
 
 
+def cmd_test(args: argparse.Namespace):
+    """Run pytest test suite."""
+    print("=" * 60)
+    print("  AGENT PROMPT FIREWALL • RUNNING TEST SUITE")
+    print("=" * 60)
+    test_cmd = [sys.executable, "-m", "pytest", "tests/"]
+    if getattr(args, "verbose", False):
+        test_cmd.append("-v")
+    if getattr(args, "pytest_args", None):
+        test_cmd.extend(args.pytest_args)
+    res = subprocess.run(test_cmd)
+    sys.exit(res.returncode)
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="agent-firewall",
@@ -215,6 +229,12 @@ def main():
     p_run.add_argument("--upstream", default=None, help="Upstream LLM target URL (optional)")
     p_run.add_argument("cmd", nargs=argparse.REMAINDER, help="Command to run (prefixed by --)")
     p_run.set_defaults(func=cmd_run)
+
+    # test
+    p_test = subparsers.add_parser("test", help="Execute firewall test suite via pytest")
+    p_test.add_argument("-v", "--verbose", action="store_true", help="Verbose pytest output")
+    p_test.add_argument("pytest_args", nargs=argparse.REMAINDER, help="Additional arguments forwarded to pytest")
+    p_test.set_defaults(func=cmd_test)
 
     parsed = parser.parse_args()
     if hasattr(parsed, "cmd") and parsed.cmd and parsed.cmd[0] == "--":

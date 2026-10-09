@@ -291,10 +291,23 @@
       const evalRes = evaluateClientSide(prompt);
       evalRes.duration_ms = Math.round((performance.now() - start) * 100) / 100;
       result = evalRes;
+
+      if (typeof window.dispatchFirewallEvent === 'function') {
+        window.dispatchFirewallEvent({
+          id: 'client-' + Date.now(),
+          timestamp: new Date().toLocaleTimeString(),
+          threat_score: evalRes.score,
+          threat_type: evalRes.threat_type,
+          redacted_count: evalRes.redacted_count,
+          blocked: evalRes.should_block,
+          source: 'SANDBOX :LOCAL',
+          snippet: prompt.slice(0, 120),
+          latency_ms: evalRes.duration_ms,
+        });
+      }
     }
 
     renderScanResult(result);
-    updateStatsCounters(result);
   }
 
   function renderScanResult(res) {
@@ -564,23 +577,315 @@
     }
   }
 
+  // --- Real-Time Telemetry & SSE Stream Pipeline ---
+  const processedEventIds = new Set();
+  const telemetryHistory = [];
+  const MAX_HISTORY = 25;
+  let chartCanvas = null;
+  let chartCtx = null;
+
+  function initThreatChart() {
+    chartCanvas = document.getElementById('threatTelemetryChart');
+    if (!chartCanvas) return;
+    chartCtx = chartCanvas.getContext('2d');
+
+    function resizeChart() {
+      if (!chartCanvas || !chartCanvas.parentElement) return;
+      const rect = chartCanvas.parentElement.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      chartCanvas.width = rect.width * dpr;
+      chartCanvas.height = 230 * dpr;
+      if (chartCtx.resetTransform) {
+        chartCtx.resetTransform();
+      } else {
+        chartCtx.setTransform(1, 0, 0, 1, 0, 0);
+      }
+      chartCtx.scale(dpr, dpr);
+      drawThreatChart();
+    }
+
+    window.addEventListener('resize', resizeChart);
+    resizeChart();
+  }
+
+  function drawThreatChart() {
+    if (!chartCanvas || !chartCtx) return;
+    const dpr = window.devicePixelRatio || 1;
+    const width = chartCanvas.width / dpr;
+    const height = chartCanvas.height / dpr;
+
+    chartCtx.clearRect(0, 0, width, height);
+
+    const padLeft = 44;
+    const padRight = 20;
+    const padTop = 26;
+    const padBottom = 26;
+    const plotW = Math.max(10, width - padLeft - padRight);
+    const plotH = Math.max(10, height - padTop - padBottom);
+
+    // Draw horizontal grid lines & Y labels (0.0, 0.25, 0.50, 0.70, 1.0)
+    chartCtx.font = '10px "JetBrains Mono", monospace';
+    chartCtx.fillStyle = 'rgba(156, 163, 175, 0.65)';
+    chartCtx.textAlign = 'right';
+    chartCtx.textBaseline = 'middle';
+
+    const yLevels = [
+      { val: 1.0, label: '1.0' },
+      { val: 0.7, label: '0.7' },
+      { val: 0.5, label: '0.5' },
+      { val: 0.25, label: '0.25' },
+      { val: 0.0, label: '0.0' }
+    ];
+
+    yLevels.forEach(lvl => {
+      const y = padTop + plotH * (1.0 - lvl.val);
+      chartCtx.beginPath();
+      chartCtx.strokeStyle = (lvl.val === 0.7) ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.06)';
+      chartCtx.lineWidth = (lvl.val === 0.7) ? 1.5 : 1;
+      if (lvl.val === 0.7) {
+        chartCtx.setLineDash([4, 4]);
+      } else {
+        chartCtx.setLineDash([]);
+      }
+      chartCtx.moveTo(padLeft, y);
+      chartCtx.lineTo(width - padRight, y);
+      chartCtx.stroke();
+      chartCtx.setLineDash([]);
+
+      chartCtx.fillText(lvl.label, padLeft - 6, y);
+    });
+
+    // Block threshold label
+    const blockY = padTop + plotH * (1.0 - 0.7);
+    chartCtx.fillStyle = 'rgba(239, 68, 68, 0.85)';
+    chartCtx.textAlign = 'left';
+    chartCtx.fillText('BLOCK THRESHOLD (0.70)', padLeft + 6, blockY - 8);
+
+    if (telemetryHistory.length === 0) {
+      chartCtx.fillStyle = 'rgba(156, 163, 175, 0.5)';
+      chartCtx.textAlign = 'center';
+      chartCtx.font = '12px "JetBrains Mono", monospace';
+      chartCtx.fillText('Waiting for intercepted prompt telemetry stream...', padLeft + plotW / 2, padTop + plotH / 2);
+      return;
+    }
+
+    const points = telemetryHistory.map((item, idx) => {
+      const x = telemetryHistory.length === 1
+        ? padLeft + plotW / 2
+        : padLeft + (idx / (telemetryHistory.length - 1)) * plotW;
+      const y = padTop + plotH * (1.0 - Math.min(1.0, Math.max(0, item.score)));
+      return { x, y, score: item.score, blocked: item.blocked, time: item.time };
+    });
+
+    // Area fill gradient under curve
+    chartCtx.beginPath();
+    chartCtx.moveTo(points[0].x, padTop + plotH);
+    points.forEach(pt => chartCtx.lineTo(pt.x, pt.y));
+    chartCtx.lineTo(points[points.length - 1].x, padTop + plotH);
+    chartCtx.closePath();
+
+    const areaGrad = chartCtx.createLinearGradient(0, padTop, 0, padTop + plotH);
+    areaGrad.addColorStop(0, 'rgba(212, 175, 55, 0.28)');
+    areaGrad.addColorStop(1, 'rgba(212, 175, 55, 0.01)');
+    chartCtx.fillStyle = areaGrad;
+    chartCtx.fill();
+
+    // Line stroke
+    chartCtx.beginPath();
+    chartCtx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) {
+      const prev = points[i - 1];
+      const curr = points[i];
+      const cx = (prev.x + curr.x) / 2;
+      chartCtx.quadraticCurveTo(prev.x, prev.y, cx, (prev.y + curr.y) / 2);
+    }
+    chartCtx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+    chartCtx.strokeStyle = '#D4AF37';
+    chartCtx.lineWidth = 2.5;
+    chartCtx.stroke();
+
+    // Node points with glowing outline
+    points.forEach(pt => {
+      chartCtx.beginPath();
+      chartCtx.arc(pt.x, pt.y, 4.5, 0, Math.PI * 2);
+      chartCtx.fillStyle = pt.blocked ? '#EF4444' : (pt.score >= 0.45 ? '#F59E0B' : '#10B981');
+      chartCtx.shadowColor = pt.blocked ? '#EF4444' : '#10B981';
+      chartCtx.shadowBlur = 8;
+      chartCtx.fill();
+      chartCtx.shadowBlur = 0;
+    });
+  }
+
+  function addLiveLogItem(event) {
+    const feed = document.getElementById('liveLogFeed');
+    const emptyPlaceholder = document.getElementById('liveLogEmpty');
+    const countEl = document.getElementById('liveEventCount');
+    if (!feed) return;
+
+    if (emptyPlaceholder) {
+      emptyPlaceholder.style.display = 'none';
+    }
+
+    const item = document.createElement('div');
+    item.className = 'live-log-item ' + (event.blocked ? 'item-blocked' : 'item-passed');
+
+    const sourceLabel = event.source || 'PROXY :8099';
+    const isProxy = String(sourceLabel).toLowerCase().includes('proxy');
+    const sourceClass = isProxy ? 'pill-source-proxy' : 'pill-source-api';
+
+    const decisionText = event.blocked ? 'BLOCKED 🚫' : 'PASSED ✅';
+    const decisionClass = event.blocked ? 'pill-decision-blocked' : 'pill-decision-passed';
+
+    const score = Number(event.threat_score !== undefined ? event.threat_score : (event.score || 0)).toFixed(2);
+    const scoreColor = event.blocked ? '#EF4444' : (score >= 0.45 ? '#F59E0B' : '#10B981');
+
+    const timestamp = event.timestamp || new Date().toLocaleTimeString();
+    const redactedText = (event.redacted_count || 0) + ' secrets scrubbed';
+    const rawSnippet = event.snippet || event.prompt_snippet || 'Inbound prompt payload';
+    const snippet = String(rawSnippet).replace(/[\r\n]+/g, ' ');
+
+    item.innerHTML = `
+      <div class="log-item-header">
+        <div class="log-tags">
+          <span class="log-pill ${sourceClass}">${escapeHtml(sourceLabel)}</span>
+          <span class="log-pill ${decisionClass}">${decisionText}</span>
+          <span class="log-pill pill-threat-type">${escapeHtml(event.threat_type || 'CLEAN')}</span>
+        </div>
+        <span class="log-timestamp">${escapeHtml(timestamp)}</span>
+      </div>
+      <div class="log-snippet" title="${escapeHtml(snippet)}">${escapeHtml(snippet)}</div>
+      <div class="log-meta-row">
+        <span>Threat Score: <strong class="log-meta-score" style="color: ${scoreColor}">${score}</strong></span>
+        <span>${escapeHtml(redactedText)}</span>
+        <span>Latency: ${(Number(event.latency_ms) || 1.8).toFixed(1)}ms</span>
+      </div>
+    `;
+
+    feed.prepend(item);
+
+    // Keep DOM limited
+    while (feed.children.length > 40) {
+      feed.removeChild(feed.lastChild);
+    }
+
+    if (countEl) {
+      countEl.innerText = String(parseInt(countEl.innerText || '0', 10) + 1);
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function refreshCountersUI() {
+    const elScans = document.getElementById('statTotalScans');
+    const elBlocked = document.getElementById('statTotalBlocked');
+    const elRedacted = document.getElementById('statTotalRedacted');
+    const elCleanRate = document.getElementById('statCleanRate');
+
+    if (elScans) elScans.innerText = state.stats.totalScans;
+    if (elBlocked) elBlocked.innerText = state.stats.totalBlocked;
+    if (elRedacted) elRedacted.innerText = state.stats.totalRedacted;
+    if (elCleanRate) {
+      const rate = state.stats.totalScans > 0
+        ? Math.round(((state.stats.totalScans - state.stats.totalBlocked) / state.stats.totalScans) * 100)
+        : 100;
+      elCleanRate.innerText = rate + '%';
+    }
+  }
+
+  window.dispatchFirewallEvent = function(eventData) {
+    if (!eventData) return;
+
+    if (eventData.id && processedEventIds.has(eventData.id)) {
+      return;
+    }
+    if (eventData.id) {
+      processedEventIds.add(eventData.id);
+    }
+
+    const threatScore = Number(eventData.threat_score !== undefined ? eventData.threat_score : (eventData.score || 0));
+    const isBlocked = Boolean(eventData.blocked || eventData.action === 'BLOCKED' || threatScore >= 0.70);
+    const redactedCount = Number(eventData.redacted_count || 0);
+
+    // 1. Update Telemetry Counters
+    state.stats.totalScans++;
+    if (isBlocked) state.stats.totalBlocked++;
+    state.stats.totalRedacted += redactedCount;
+    refreshCountersUI();
+
+    // 2. Add to Live Log Feed
+    addLiveLogItem({
+      ...eventData,
+      threat_score: threatScore,
+      blocked: isBlocked,
+      redacted_count: redactedCount,
+    });
+
+    // 3. Add to Threat Chart
+    telemetryHistory.push({
+      time: eventData.timestamp || new Date().toLocaleTimeString(),
+      score: threatScore,
+      blocked: isBlocked,
+    });
+    if (telemetryHistory.length > MAX_HISTORY) {
+      telemetryHistory.shift();
+    }
+
+    const latestEl = document.getElementById('chartLatestScore');
+    const maxEl = document.getElementById('chartMaxScore');
+    if (latestEl) {
+      latestEl.innerText = threatScore.toFixed(2);
+      latestEl.style.color = isBlocked ? '#EF4444' : (threatScore >= 0.45 ? '#F59E0B' : '#10B981');
+    }
+    if (maxEl) {
+      const maxScore = Math.max(...telemetryHistory.map(h => h.score));
+      maxEl.innerText = maxScore.toFixed(2);
+    }
+
+    drawThreatChart();
+  };
+
   // --- SSE Telemetry Receiver ---
   function initSSE() {
     try {
-      const evtSource = new EventSource('/api/stream');
-      evtSource.addEventListener('threat_blocked', (e) => {
-        const data = JSON.parse(e.data);
-        state.stats.totalBlocked++;
-        state.stats.totalScans++;
-        updateStatsCounters({ should_block: true, redacted_count: 0 });
+      const evtSource = new EventSource('/api/events/stream');
+      window._firewallEngineEventSource = evtSource;
+
+      evtSource.addEventListener('connected', (e) => {
+        const badge = document.getElementById('liveStreamBadge');
+        if (badge) {
+          badge.innerHTML = '<span class="pulse-dot"></span> SSE LIVE RADAR ACTIVE (:8098)';
+          badge.style.color = '#10B981';
+        }
       });
-      evtSource.addEventListener('scan_completed', (e) => {
-        const data = JSON.parse(e.data);
-        state.stats.totalScans++;
-        if (data.blocked) state.stats.totalBlocked++;
-        state.stats.totalRedacted += data.redacted_count || 0;
-        updateStatsCounters({ should_block: data.blocked, redacted_count: data.redacted_count });
-      });
+
+      function onStreamEvent(e) {
+        try {
+          const data = JSON.parse(e.data);
+          window.dispatchFirewallEvent(data);
+        } catch (err) {
+          console.error('[SSE] JSON parse error:', err);
+        }
+      }
+
+      evtSource.addEventListener('threat_event', onStreamEvent);
+      evtSource.addEventListener('threat_blocked', onStreamEvent);
+      evtSource.addEventListener('scan_completed', onStreamEvent);
+      evtSource.onmessage = onStreamEvent;
+
+      evtSource.onerror = () => {
+        const badge = document.getElementById('liveStreamBadge');
+        if (badge) {
+          badge.innerHTML = '<span class="pulse-dot" style="background:#F59E0B;box-shadow:0 0 8px #F59E0B;"></span> SSE RECONNECTING...';
+          badge.style.color = '#F59E0B';
+        }
+      };
     } catch (e) {
       // SSE not available in purely static environment
     }
@@ -591,8 +896,46 @@
     checkLicense();
     initSandbox();
     initAegisCanvas();
+    initThreatChart();
     initModals();
     initSSE();
+
+    const btnClearFeed = document.getElementById('btnClearLiveFeed');
+    if (btnClearFeed) {
+      btnClearFeed.addEventListener('click', () => {
+        const feed = document.getElementById('liveLogFeed');
+        if (feed) {
+          feed.innerHTML = `
+            <div class="live-log-empty" id="liveLogEmpty">
+              <div class="empty-icon" aria-hidden="true">📡</div>
+              <div class="empty-title">Waiting for Prompt Ingestion Stream</div>
+              <div class="empty-subtitle">Send requests through proxy port <code>:8099</code> or test prompts below. Threats and sanitizations stream here in real time with zero page reloads.</div>
+            </div>
+          `;
+        }
+        const countEl = document.getElementById('liveEventCount');
+        if (countEl) countEl.innerText = '0';
+      });
+    }
+
+    // Pre-populate recent scans if server has existing telemetry
+    fetch('/api/scans').then(r => r.json()).then(scans => {
+      if (Array.isArray(scans) && scans.length > 0) {
+        scans.slice(-15).forEach(s => {
+          window.dispatchFirewallEvent({
+            id: s.id,
+            timestamp: s.timestamp,
+            threat_score: s.threat_score,
+            threat_type: s.threat_type,
+            redacted_count: s.redacted_count,
+            blocked: Boolean(s.blocked),
+            source: s.direction === 'inbound' ? 'PROXY :8099' : 'SCAN API',
+            snippet: s.prompt_snippet,
+            latency_ms: s.duration_ms,
+          });
+        });
+      }
+    }).catch(() => {});
   });
 
 })();
