@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Prompt Firewall • Autonomous Inline Threat Radar & PII Redactor for AI Agents</title>
+  <meta name="description" content="Autonomous, zero-dependency inline security proxy and threat radar for AI agents. Intercepts prompt injections, jailbreaks, and scrubs secrets and PII with zero latency.">
+  <link rel="canonical" href="https://firewall.nullai.tech/">
+
+  <!-- Social & OpenGraph Meta -->
+  <meta property="og:title" content="Agent Prompt Firewall • Autonomous Inline Security Proxy for AI Agents">
+  <meta property="og:description" content="Intercept prompt injections, detect direct/indirect jailbreaks, and scrub secrets (OpenAI, AWS, Stripe) & PII in real-time. Zero pip dependencies.">
+  <meta property="og:url" content="https://firewall.nullai.tech/">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://firewall.nullai.tech/og-firewall.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@1nc0gn30">
+  <meta name="twitter:creator" content="@1nc0gn30">
+  <meta name="twitter:image" content="https://firewall.nullai.tech/og-firewall.png">
+
+  <!-- Distinctive Typography Pairing -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- AEO Schema.org JSON-LD Graph -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "@id": "https://firewall.nullai.tech/#app",
+        "name": "Agent Prompt Firewall",
+        "url": "https://firewall.nullai.tech/",
+        "applicationCategory": "SecurityApplication",
+        "operatingSystem": "Linux, macOS, Windows (Python 3.10+)",
+        "description": "Zero-dependency inline security proxy and threat radar for AI agents. Neutralizes prompt injections and scrubs sensitive secrets and PII.",
+        "creator": {
+          "@type": "Person",
+          "name": "Neal Frazier",
+          "alternateName": "Neal Frazier Tech",
+          "url": "https://nealfrazier.tech"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": "19.00",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock",
+          "url": "https://buy.stripe.com/7sI7sA8hM2X8eFG8ww"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://firewall.nullai.tech/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "How does Agent Prompt Firewall protect AI agents against prompt injections?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Agent Prompt Firewall sits inline between your agent and the LLM runtime (port 8099). It analyzes inbound prompts using multi-tier heuristic detection, delimiter collision analysis, and entropy decoders to neutralize direct overrides, jailbreaks, and exfiltration attempts in under 3 milliseconds."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does the firewall require external dependencies or external cloud lookups?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. The backend runtime requires 0 external pip packages and runs entirely on the standard Python 3.10+ library. All detection and redaction happen locally on your hardware or in your CI/CD pipeline with zero data leakage."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What secrets and PII does the redaction engine scrub?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "It automatically detects and redacts OpenAI, Anthropic, AWS, Google, GitHub, and Stripe API keys, database connection URIs, private RSA/PGP keys, emails, US Social Security Numbers, phone numbers, and Luhn-validated credit card numbers."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #08080B;
+      --card-bg: #121217;
+      --card-surface: #181820;
+      --border: #272733;
+      --border-accent: rgba(212, 175, 55, 0.35);
+      --gold: #D4AF37;
+      --gold-glow: rgba(212, 175, 55, 0.2);
+      --emerald: #10B981;
+      --ruby: #EF4444;
+      --amber: #F59E0B;
+      --text: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --font-display: 'Syne', sans-serif;
+      --font-body: 'Space Grotesk', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+    }
+
+    /* Header */
+    header {
+      border-bottom: 1px solid var(--border);
+      background: rgba(8, 8, 11, 0.85);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 70px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--gold);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(212, 175, 55, 0.08);
+      color: var(--gold);
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-free {
+      background: rgba(156, 163, 175, 0.12);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+
+    .badge-pro {
+      background: rgba(212, 175, 55, 0.18);
+      color: var(--gold);
+      border: 1px solid var(--gold);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      box-shadow: 0 0 12px var(--gold-glow);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      min-height: 44px;
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: #000;
+      border: 1px solid var(--gold);
+    }
+
+    .btn-gold:hover {
+      background: #E5C158;
+      box-shadow: 0 0 16px var(--gold-glow);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    /* Sales Funnel Banner Above Main Section */
+    .sales-banner {
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(18, 18, 23, 0.95));
+      border: 1px solid var(--border-accent);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem auto 1rem;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    .banner-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .banner-content {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .urgency-pill {
+      background: rgba(239, 68, 68, 0.18);
+      color: #F87171;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+    }
+
+    .banner-text {
+      font-size: 0.92rem;
+      color: var(--text);
+    }
+
+    .price-strike {
+      text-decoration: line-through;
+      color: var(--text-muted);
+      margin: 0 4px;
+    }
+
+    .price-highlight {
+      color: var(--gold);
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .banner-ctas {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 2.5rem 0 2rem;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 2.5rem;
+      align-items: center;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: 2.6rem;
+      line-height: 1.15;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+    }
+
+    .hero-title span {
+      color: var(--gold);
+      text-shadow: 0 0 24px var(--gold-glow);
+    }
+
+    .hero-subtitle {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+      max-width: 580px;
+    }
+
+    .hero-pills {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hero-pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--emerald);
+    }
+
+    /* Kinetic Aegis Radar Canvas Container */
+    .hero-radar-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 320px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    #aegisRadarCanvas {
+      width: 100%;
+      height: 260px;
+      display: block;
+    }
+
+    .radar-caption {
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin: 1.5rem 0 2.5rem;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem 1rem;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* Threat Sandbox & Inspector */
+    .sandbox-section {
+      margin-bottom: 3rem;
+    }
+
+    .section-header {
+      margin-bottom: 1.25rem;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    .sandbox-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .sandbox-pane {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .pane-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pane-title {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    .preset-select {
+      background: var(--card-surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      min-height: 38px;
+    }
+
+    .prompt-textarea {
+      background: var(--card-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      min-height: 160px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .prompt-textarea:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+
+    .pane-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Inspection Metrics */
+    .metric-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .metric-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .threat-badge {
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    .badge-critical { background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 1px solid #EF4444; }
+    .badge-high { background: rgba(245, 158, 11, 0.2); color: #F59E0B; border: 1px solid #F59E0B; }
+    .badge-medium { background: rgba(234, 179, 8, 0.2); color: #EAB308; border: 1px solid #EAB308; }
+    .badge-low { background: rgba(59, 130, 246, 0.2); color: #60A5FA; border: 1px solid #3B82F6; }
+    .badge-clean { background: rgba(16, 185, 129, 0.2); color: #10B981; border: 1px solid #10B981; }
+
+    .decision-badge {
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    .decision-blocked { background: #EF4444; color: #FFF; }
+    .decision-permitted { background: #10B981; color: #FFF; }
+
+    /* Threat Gauge Bar */
+    .gauge-container {
+      width: 100%;
+      height: 8px;
+      background: var(--card-surface);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+
+    .gauge-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--emerald);
+      transition: all 0.3s ease;
+    }
+
+    .threat-details-box {
+      background: var(--card-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .threat-details-box ul {
+      list-style-type: none;
+    }
+
+    .threat-details-box li {
+      margin-bottom: 4px;
+      color: #F87171;
+    }
+
+    /* Frosted Locked Compliance Section */
+    .compliance-wrapper {
+      position: relative;
+      margin-bottom: 3.5rem;
+    }
+
+    .frosted-locked {
+      filter: blur(6px);
+      pointer-events: none;
+      user-select: none;
+      opacity: 0.6;
+    }
+
+    .compliance-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .lock-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+
+    .lock-card {
+      background: rgba(18, 18, 23, 0.95);
+      border: 1px solid var(--gold);
+      border-radius: 14px;
+      padding: 2rem 2.5rem;
+      text-align: center;
+      max-width: 480px;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.8), 0 0 24px var(--gold-glow);
+    }
+
+    .lock-icon {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .lock-title {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--gold);
+    }
+
+    .lock-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+      line-height: 1.5;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+    }
+
+    .modal-box {
+      background: var(--card-bg);
+      border: 1px solid var(--gold);
+      border-radius: 16px;
+      max-width: 520px;
+      width: 100%;
+      padding: 2rem;
+      position: relative;
+      box-shadow: 0 16px 64px rgba(0, 0, 0, 0.9), 0 0 32px var(--gold-glow);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.25rem;
+      cursor: pointer;
+    }
+
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+      color: var(--gold);
+    }
+
+    .modal-features {
+      margin: 1.25rem 0;
+      list-style-type: none;
+    }
+
+    .modal-features li {
+      font-size: 0.88rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-input-group {
+      display: flex;
+      gap: 8px;
+      margin: 1rem 0;
+    }
+
+    .modal-input {
+      flex: 1;
+      background: var(--card-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 0;
+      margin-top: 3rem;
+      background: rgba(8, 8, 11, 0.6);
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 16px;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: var(--gold);
+    }
+
+    .compliance-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+      .sandbox-grid {
+        grid-template-columns: 1fr;
+      }
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .compliance-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 0 0.5rem;
+      }
+      .brand-title {
+        font-size: 0.92rem;
+      }
+      .brand-icon {
+        width: 30px;
+        height: 30px;
+      }
+      .header-actions {
+        gap: 6px;
+      }
+      #proStatusBadge {
+        display: none;
+      }
+      .hero-title {
+        font-size: 1.85rem;
+      }
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      .sandbox-pane {
+        padding: 1rem 0.75rem;
+        min-width: 0;
+      }
+      .pane-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .preset-select {
+        width: 100%;
+        max-width: 100%;
+      }
+      .prompt-textarea {
+        width: 100%;
+      }
+      .banner-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .banner-ctas {
+        width: 100%;
+      }
+      .banner-ctas .btn {
+        flex: 1;
+      }
+      .lock-card {
+        padding: 1.5rem 1rem;
+        margin: 0 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Header -->
+  <header>
+    <div class="container">
+      <div class="nav-inner">
+        <a href="/" class="brand" aria-label="Agent Prompt Firewall Home">
+          <div class="brand-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Shield Logo">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+          </div>
+          <div>
+            <div class="brand-title">AGENT PROMPT FIREWALL</div>
+            <div style="font-size: 0.72rem; color: var(--gold); font-family: var(--font-mono);">v0.1.0 • Inline Threat Radar</div>
+          </div>
+        </a>
+
+        <div class="header-actions">
+          <span id="proStatusBadge" class="badge-free">⚡ FREE TIER</span>
+          <button class="btn btn-gold open-pro-modal" aria-label="Unlock Pro License">Upgrade Pro</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- High-Converting Sales Funnel Banner Above Main Section -->
+    <section class="sales-banner" id="paywallBanner" aria-label="Founding Member Lifetime Offer">
+      <div class="banner-inner">
+        <div class="banner-content">
+          <span class="urgency-pill">⚡ FOUNDING MEMBER TIER</span>
+          <div class="banner-text">
+            <strong>Lock Down Your Agent Runtime:</strong> Lifetime Unlimited Access for 
+            <span class="price-strike">$79</span> 
+            <span class="price-highlight">$19</span> (Save 76%)
+          </div>
+        </div>
+        <div class="banner-ctas">
+          <a href="https://buy.stripe.com/7sI7sA8hM2X8eFG8ww" target="_blank" rel="noopener noreferrer" class="btn btn-gold" aria-label="Instant Stripe Checkout">
+            Stripe Checkout ($19)
+          </a>
+          <button class="btn btn-outline open-pro-modal" aria-label="Activate with Solana or License Key">
+            Solana / Key
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Hero Section -->
+    <section class="hero" aria-label="Hero Overview">
+      <div>
+        <div class="hero-pills">
+          <div class="hero-pill"><div class="hero-pill-dot"></div> Zero External Pip Dependencies</div>
+          <div class="hero-pill"><div class="hero-pill-dot"></div> Sub-3ms Inline Latency</div>
+          <div class="hero-pill"><div class="hero-pill-dot"></div> Port 8099 Proxy</div>
+        </div>
+        <h1 class="hero-title">
+          Neutralize Prompt Injections. <span>Scrub Secrets In Real Time.</span>
+        </h1>
+        <p class="hero-subtitle">
+          Autonomous inline security proxy and threat radar for AI agents. Intercepts LLM input prompts and outbound completions to eliminate jailbreaks, delimiter collisions, credential exfiltration, and PII leaks before transmission.
+        </p>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <a href="#tester" class="btn btn-gold" aria-label="Launch Sandbox Tester">Launch Sandbox Tester</a>
+          <button class="btn btn-outline open-pro-modal" aria-label="View Pro Capabilities">Pro Compliance Suite</button>
+        </div>
+      </div>
+
+      <!-- Kinetic Aegis Radar Canvas -->
+      <div class="hero-radar-card" aria-label="Hexagonal Aegis Radar Visualizer">
+        <canvas id="aegisRadarCanvas" aria-label="Kinetic radar scan visualizer"></canvas>
+        <div class="radar-caption">AEGIS HEXAGONAL THREAT RADAR • 360° ACTIVE SWEEP</div>
+      </div>
+    </section>
+
+    <!-- Telemetry Stats Grid -->
+    <section class="stats-grid" aria-label="Live Telemetry Counters">
+      <div class="stat-card">
+        <div class="stat-label">Total Prompts Inspected</div>
+        <div class="stat-value" id="statTotalScans">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Attacks Neutralized</div>
+        <div class="stat-value" id="statTotalBlocked" style="color: var(--ruby);">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Secrets & PII Redacted</div>
+        <div class="stat-value" id="statTotalRedacted" style="color: var(--gold);">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Clean Pipeline Rate</div>
+        <div class="stat-value" id="statCleanRate" style="color: var(--emerald);">100%</div>
+      </div>
+    </section>
+
+    <!-- Interactive Prompt Sandbox -->
+    <section class="sandbox-section" id="tester" aria-label="Interactive Threat Sandbox">
+      <div class="section-header">
+        <h2 class="section-title">Interactive Threat Sandbox & Sanitizer</h2>
+        <p class="section-desc">Test real-world prompt injection payloads, system prompt exfiltration probes, and secret exposure vectors.</p>
+      </div>
+
+      <div class="sandbox-grid">
+        <!-- Input Pane -->
+        <div class="sandbox-pane">
+          <div class="pane-header">
+            <span class="pane-title">Input Prompt Payload</span>
+            <label for="presetSelect" class="sr-only" style="display:none;">Select Attack Preset</label>
+            <select id="presetSelect" class="preset-select" aria-label="Select Attack Preset">
+              <option value="dan">Attack: DAN Jailbreak</option>
+              <option value="exfil">Attack: System Prompt Extraction</option>
+              <option value="delimiter">Attack: Delimiter Collision [INST]</option>
+              <option value="secrets">Leak: API Keys, SSN & Credit Card</option>
+              <option value="base64">Obfuscation: Base64 Encoded Injection</option>
+              <option value="clean">Benign: Safe Developer Query</option>
+            </select>
+          </div>
+          <label for="promptInput" style="display:none;">Raw Prompt Input</label>
+          <textarea id="promptInput" class="prompt-textarea" placeholder="Enter prompt text or API payload to inspect..." aria-label="Prompt Input Textarea"></textarea>
+          <div class="pane-actions">
+            <button id="btnScanPrompt" class="btn btn-gold" style="flex: 2;" aria-label="Inspect Prompt Button">Inspect & Sanitize</button>
+            <button id="btnClearPrompt" class="btn btn-outline" style="flex: 1;" aria-label="Clear Prompt Button">Clear</button>
+          </div>
+        </div>
+
+        <!-- Output & Threat Diagnostics -->
+        <div class="sandbox-pane">
+          <div class="pane-header">
+            <span class="pane-title">Real-Time Threat Diagnostics</span>
+            <span id="threatBadge" class="threat-badge badge-clean">CLEAN</span>
+          </div>
+
+          <div>
+            <div class="metric-row">
+              <span class="metric-label">Decision Outcome:</span>
+              <span id="blockBadge" class="decision-badge decision-permitted">PERMITTED ✅</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Threat Severity Score:</span>
+              <span id="threatScoreVal" style="font-family: var(--font-mono); font-weight: 700;">0.00</span>
+            </div>
+            <div class="gauge-container" aria-label="Threat Score Bar">
+              <div id="radarGaugeFill" class="gauge-fill"></div>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Inspection Latency:</span>
+              <span id="latencyVal" style="font-family: var(--font-mono);">1.85ms</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Secrets / PII Scrubbed:</span>
+              <span id="redactedCountVal" style="font-family: var(--font-mono); color: var(--gold);">0</span>
+            </div>
+          </div>
+
+          <div>
+            <span class="metric-label" style="display:block; margin-bottom: 4px;">Triggered Heuristics:</span>
+            <div class="threat-details-box">
+              <ul id="threatDetailsList">
+                <li>No active threat signatures detected.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <span class="metric-label">Sanitized Wire Output:</span>
+              <button id="btnCopySanitized" class="btn btn-outline" style="min-height: 28px; padding: 2px 8px; font-size: 0.72rem;" aria-label="Copy sanitized output">Copy Output</button>
+            </div>
+            <label for="sanitizedOutput" style="display:none;">Sanitized Prompt Output</label>
+            <textarea id="sanitizedOutput" readonly class="prompt-textarea" style="min-height: 90px;" aria-label="Sanitized Output"></textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Frosted Glass Paywall: Advanced Compliance & Custom Heuristics -->
+    <section class="compliance-wrapper" id="paywall" aria-label="Pro Compliance Suite">
+      <div class="section-header">
+        <h2 class="section-title">Enterprise Compliance & Custom Heuristics</h2>
+        <p class="section-desc">Automated SOC-2 Type II audit exports, HIPAA de-identification manifests, and custom AST de-obfuscation.</p>
+      </div>
+
+      <div class="compliance-card frosted-locked" id="proLockedSection">
+        <div class="compliance-grid">
+          <div style="background: var(--card-surface); padding: 1rem; border-radius: 8px;">
+            <div style="font-weight: 700; color: var(--gold); margin-bottom: 4px;">SOC-2 Type II Logs</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Immutable hash-chained JSON logs of every prompt evaluation and decision.</div>
+          </div>
+          <div style="background: var(--card-surface); padding: 1rem; border-radius: 8px;">
+            <div style="font-weight: 700; color: var(--gold); margin-bottom: 4px;">AST De-obfuscation</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Decodes recursive base64, zlib, unicode homoglyphs, and zero-width spaces.</div>
+          </div>
+          <div style="background: var(--card-surface); padding: 1rem; border-radius: 8px;">
+            <div style="font-weight: 700; color: var(--gold); margin-bottom: 4px;">Custom Regex Rules</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Inject proprietary data boundaries and custom organization secret markers.</div>
+          </div>
+        </div>
+        <button id="btnExportAudit" class="btn btn-gold" aria-label="Export Full Compliance Audit">Export Compliance Audit JSON</button>
+      </div>
+
+      <!-- Glowing Lock Overlay -->
+      <div class="lock-overlay" id="complianceLockOverlay">
+        <div class="lock-card">
+          <div class="lock-icon" aria-hidden="true">🔒</div>
+          <div class="lock-title">PRO COMPLIANCE SUITE LOCKED</div>
+          <p class="lock-desc">
+            Unlock Custom Regex Rulesets, Deep AST De-Obfuscation, and 1-Click SOC-2 / HIPAA JSON Audit Logs with permanent founding access.
+          </p>
+          <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <a href="https://buy.stripe.com/7sI7sA8hM2X8eFG8ww" target="_blank" rel="noopener noreferrer" class="btn btn-gold" aria-label="Unlock via Stripe">
+              Unlock via Stripe ($19)
+            </a>
+            <button class="btn btn-outline open-pro-modal" aria-label="Activate with Key or Solana">
+              Solana DePay / Key
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Pro Modal -->
+  <div class="modal-backdrop" id="proModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-box">
+      <button class="modal-close" id="closeProModal" aria-label="Close Pro Modal">&times;</button>
+      <h3 class="modal-title" id="modalTitle">⭐ AGENT PROMPT FIREWALL PRO</h3>
+      <p style="font-size: 0.88rem; color: var(--text-muted);">
+        Activate your founding member license to unlock all advanced enterprise compliance modules and remove all limitations.
+      </p>
+
+      <ul class="modal-features">
+        <li><span>✅</span> Unlimited Inline Interceptions on Port 8099</li>
+        <li><span>✅</span> Full SOC-2 & HIPAA Compliance Audit Export</li>
+        <li><span>✅</span> Deep AST & Unicode Homoglyph De-Obfuscation</li>
+        <li><span>✅</span> Custom Proprietary Regex Rulesets</li>
+        <li><span>✅</span> Lifetime Updates & Autonomous CI/CD Runner</li>
+      </ul>
+
+      <div style="display: flex; gap: 10px; margin: 1.25rem 0;">
+        <a href="https://buy.stripe.com/7sI7sA8hM2X8eFG8ww" target="_blank" rel="noopener noreferrer" class="btn btn-gold" style="flex: 1;" aria-label="Stripe Checkout Button">
+          Stripe ($19 Lifetime)
+        </a>
+        <a href="https://depay.com" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="flex: 1;" aria-label="Solana DePay Checkout">
+          Solana DePay (SOL)
+        </a>
+      </div>
+
+      <div style="border-top: 1px solid var(--border); padding-top: 1rem;">
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">Already have a license or receipt key?</div>
+        <div class="modal-input-group">
+          <input type="text" id="licenseKeyInput" class="modal-input" placeholder="Enter key (e.g. FW-PRO-xxxx)" aria-label="License Key Input">
+          <button id="btnActivateKey" class="btn btn-gold" aria-label="Activate License Key">Activate</button>
+        </div>
+        <div id="activationMsg" style="font-size: 0.78rem; font-family: var(--font-mono);"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer with Subtle Attribution -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div>
+          Engineered by <strong>Neal Frazier Tech</strong> (<a href="https://github.com/1nc0gn30" target="_blank" rel="noopener noreferrer" style="color: var(--gold); text-decoration: none;">@1nc0gn30</a>) • <strong>NullAI Platform</strong>
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/1nc0gn30/agent-prompt-firewall" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+          <a href="https://nullai.tech" target="_blank" rel="noopener noreferrer">NullAI Platform</a>
+          <a href="https://nealfrazier.tech" target="_blank" rel="noopener noreferrer">Neal Frazier Tech</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/firewall_engine.js"></script>
+</body>
+</html>
