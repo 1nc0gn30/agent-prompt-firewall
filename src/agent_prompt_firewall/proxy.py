@@ -21,6 +21,26 @@ from .redactor import Redactor, RedactionResult
 from .storage import FirewallStorage, GLOBAL_BROADCASTER
 
 
+def _is_local_origin(origin) -> bool:
+    """Browser Origin check. No Origin header = non-browser client (CLI/agent): allowed.
+    Otherwise only http(s)://localhost / 127.0.0.1 / [::1] pages may call this API, so a
+    random website can't drive the local server from the user's browser (CSRF)."""
+    if not origin:
+        return True
+    from urllib.parse import urlparse
+    try:
+        u = urlparse(origin)
+    except ValueError:
+        return False
+    return u.scheme in ("http", "https") and u.hostname in ("localhost", "127.0.0.1", "::1")
+
+
+def _cors_origin(handler) -> str:
+    origin = handler.headers.get("Origin")
+    return origin if origin and _is_local_origin(origin) else "http://127.0.0.1"
+
+
+
 class ThreadedProxyServer(ThreadingMixIn, HTTPServer):
     daemon_threads = True
     allow_reuse_address = True
@@ -65,6 +85,14 @@ class ProxyRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_POST(self):
+        if not _is_local_origin(self.headers.get("Origin")):
+            _body = b'{"error": "cross-origin request blocked"}'
+            self.send_response(403)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(_body)))
+            self.end_headers()
+            self.wfile.write(_body)
+            return
         start_time = time.perf_counter()
         content_length = int(self.headers.get("Content-Length", 0))
         raw_body = self.rfile.read(content_length) if content_length > 0 else b""
@@ -315,7 +343,7 @@ class ProxyRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(resp_body)
 
     def _set_cors_headers(self):
-        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Origin", _cors_origin(self))
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD")
         self.send_header("Access-Control-Allow-Headers", "*")
         self.send_header("Access-Control-Expose-Headers", "x-firewall-action, x-firewall-inspected, x-threat-score, x-threat-type, x-redacted-count")

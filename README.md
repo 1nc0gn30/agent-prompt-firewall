@@ -107,3 +107,7 @@ pytest -v
 ## 📜 Attribution
 
 Engineered by **Neal Frazier Tech** ([@1nc0gn30](https://github.com/1nc0gn30)) • [NullAI Platform](https://nullai.tech)
+
+Browser requests are only accepted from `localhost` / `127.0.0.1` pages:
+cross-site POSTs get `403` and CORS never answers `*`, so a website you visit
+can't drive this local server. CLI and agent clients are unaffected.
