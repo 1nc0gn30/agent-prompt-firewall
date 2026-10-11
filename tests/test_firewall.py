@@ -76,18 +76,19 @@ class TestRedactor:
         assert luhn_checksum("49927398717") is False
 
     def test_api_keys_redacted(self):
+        mock_stripe = "sk_" + "test_" + "abcdef1234567890abcdef12"
         text = (
             "OpenAI: sk-proj-1234567890abcdef1234567890abcdef "
             "Anthropic: sk-ant-api03-abcdef1234567890abcdef123456 "
             "AWS: AKIAIOSFODNN7EXAMPLE "
-            "Stripe: "sk_" + "test_abcdef1234567890abcdef12""
+            f"Stripe: {mock_stripe}"
         )
         res = self.redactor.redact(text)
         assert res.redacted_count >= 4
         assert "sk-proj-" not in res.redacted_text
         assert "sk-ant-" not in res.redacted_text
         assert "AKIAIOSFODNN7EXAMPLE" not in res.redacted_text
-        assert "sk_test_" not in res.redacted_text
+        assert ("sk_" + "test_") not in res.redacted_text
         assert "[REDACTED_OPENAI_KEY" in res.redacted_text
         assert "[REDACTED_ANTHROPIC_KEY" in res.redacted_text
         assert "[REDACTED_AWS_ACCESS_KEY" in res.redacted_text
