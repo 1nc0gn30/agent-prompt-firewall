@@ -59,7 +59,7 @@ SECRET_RULES: List[Tuple[str, str, str]] = [
     ),
     (
         "API_KEY_STRIPE",
-        r"\b(?:sk|rk)_live_[0-9a-zA-Z]{24,}\b",
+        r"\b(?:sk|rk)_(?:live|test)_[0-9a-zA-Z]{24,}\b",
         "[REDACTED_STRIPE_KEY]"
     ),
     (

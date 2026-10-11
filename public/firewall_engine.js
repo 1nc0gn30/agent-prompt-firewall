@@ -51,7 +51,7 @@
     { type: "GOOGLE_KEY", regex: /\bAIzaSy[a-zA-Z0-9_\-]{33}\b/g, token: "[REDACTED_GOOGLE_KEY]" },
     { type: "AWS_KEY", regex: /\bAKIA[0-9A-Z]{16}\b/g, token: "[REDACTED_AWS_ACCESS_KEY]" },
     { type: "GITHUB_KEY", regex: /\bgh[pousr]_[0-9a-zA-Z]{36}\b/g, token: "[REDACTED_GITHUB_TOKEN]" },
-    { type: "STRIPE_KEY", regex: /\b(?:sk|rk)_live_[0-9a-zA-Z]{24,}\b/g, token: "[REDACTED_STRIPE_KEY]" },
+    { type: "STRIPE_KEY", regex: /\b(?:sk|rk)_(?:live|test)_[0-9a-zA-Z]{24,}\b/g, token: "[REDACTED_STRIPE_KEY]" },
     { type: "DATABASE_URL", regex: /\b(?:postgres|postgresql|mysql|mongodb|redis|amqp):\/\/[^\s:@]+:[^\s:@]+@[^\s\/]+(?:\/[^\s]*)?\b/gi, token: "[REDACTED_DATABASE_URL]" },
   ];
 

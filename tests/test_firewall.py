@@ -87,7 +87,7 @@ class TestRedactor:
         assert "sk-proj-" not in res.redacted_text
         assert "sk-ant-" not in res.redacted_text
         assert "AKIAIOSFODNN7EXAMPLE" not in res.redacted_text
-        assert "sk_live_" not in res.redacted_text
+        assert "sk_test_" not in res.redacted_text
         assert "[REDACTED_OPENAI_KEY" in res.redacted_text
         assert "[REDACTED_ANTHROPIC_KEY" in res.redacted_text
         assert "[REDACTED_AWS_ACCESS_KEY" in res.redacted_text
