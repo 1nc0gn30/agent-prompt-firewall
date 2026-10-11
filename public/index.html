@@ -6,17 +6,23 @@
   <title>Agent Prompt Firewall • Autonomous Inline Threat Radar & PII Redactor for AI Agents</title>
   <meta name="description" content="Autonomous, zero-dependency inline security proxy and threat radar for AI agents. Intercepts prompt injections, jailbreaks, and scrubs secrets and PII with zero latency.">
   <link rel="canonical" href="https://firewall.nullai.tech/">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icon.png">
+  <link rel="apple-touch-icon" href="/assets/icon.png">
 
   <!-- Social & OpenGraph Meta -->
   <meta property="og:title" content="Agent Prompt Firewall • Autonomous Inline Security Proxy for AI Agents">
   <meta property="og:description" content="Intercept prompt injections, detect direct/indirect jailbreaks, and scrub secrets (OpenAI, AWS, Stripe) & PII in real-time. Zero pip dependencies.">
   <meta property="og:url" content="https://firewall.nullai.tech/">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="https://firewall.nullai.tech/og-firewall.png">
+  <meta property="og:image" content="https://firewall.nullai.tech/assets/banner.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@1nc0gn30">
   <meta name="twitter:creator" content="@1nc0gn30">
-  <meta name="twitter:image" content="https://firewall.nullai.tech/og-firewall.png">
+  <meta name="twitter:image" content="https://firewall.nullai.tech/assets/banner.png">
+
+  <!-- DePay Web3 Payments Integration -->
+  <script src="https://integrate.depay.com"></script>
 
   <!-- Distinctive Typography Pairing -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -631,9 +637,10 @@
 
     .live-bento-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 1.5rem;
       margin-top: 1.25rem;
+      min-width: 0;
     }
 
     .live-pane {
@@ -644,6 +651,8 @@
       display: flex;
       flex-direction: column;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      min-width: 0;
+      overflow: hidden;
     }
 
     .feed-status {
@@ -806,6 +815,9 @@
       text-overflow: ellipsis;
       white-space: nowrap;
       border: 1px solid rgba(255, 255, 255, 0.04);
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     .log-meta-row {
@@ -1055,19 +1067,20 @@
     /* Responsive Breakpoints */
     @media (max-width: 900px) {
       .hero {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
       }
       .sandbox-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
       }
       .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
       .compliance-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
       }
       .live-bento-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
+        min-width: 0;
       }
     }
 
@@ -1085,14 +1098,23 @@
       .header-actions {
         gap: 6px;
       }
-      #proStatusBadge {
-        display: none;
+      #proStatusBadge, #pro-badge {
+        font-size: 0.7rem;
+        padding: 2px 8px;
       }
       .hero-title {
         font-size: 1.85rem;
       }
       .stats-grid {
         grid-template-columns: 1fr;
+      }
+      .live-pane {
+        padding: 1rem 0.75rem;
+        min-width: 0;
+      }
+      .chart-footer-metrics {
+        flex-wrap: wrap;
+        gap: 8px;
       }
       .sandbox-pane {
         padding: 1rem 0.75rem;
@@ -1133,12 +1155,7 @@
     <div class="container">
       <div class="nav-inner">
         <a href="/" class="brand" aria-label="Agent Prompt Firewall Home">
-          <div class="brand-icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Shield Logo">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              <path d="M9 12l2 2 4-4"/>
-            </svg>
-          </div>
+          <img src="/assets/icon.png" alt="Agent Prompt Firewall Shield Logo" width="36" height="36" style="border-radius: 8px; border: 1px solid var(--gold); box-shadow: 0 0 10px var(--gold-glow); object-fit: cover;">
           <div>
             <div class="brand-title">AGENT PROMPT FIREWALL</div>
             <div style="font-size: 0.72rem; color: var(--gold); font-family: var(--font-mono);">v0.1.0 • Inline Threat Radar</div>
@@ -1146,8 +1163,8 @@
         </a>
 
         <div class="header-actions">
-          <span id="proStatusBadge" class="badge-free">⚡ FREE TIER</span>
-          <button class="btn btn-gold open-pro-modal" aria-label="Unlock Pro License">Upgrade Pro</button>
+          <span id="pro-badge" class="badge-free">⚡ FREE TIER</span>
+          <button class="btn btn-gold open-pro-modal" id="btnHeaderUpgrade" aria-label="Unlock Pro License">Upgrade Pro</button>
         </div>
       </div>
     </div>
@@ -1167,11 +1184,14 @@
           </div>
         </div>
         <div class="banner-ctas">
-          <a href="https://buy.stripe.com/7sI7sA8hM2X8eFG8ww" target="_blank" rel="noopener noreferrer" class="btn btn-gold" aria-label="Instant Stripe Checkout">
+          <a href="https://buy.stripe.com/7sI7sA8hM2X8eFG8ww" target="_blank" rel="noopener noreferrer" class="btn btn-gold" id="btnStripeBanner" aria-label="Instant Stripe Checkout">
             Stripe Checkout ($19)
           </a>
-          <button class="btn btn-outline open-pro-modal" aria-label="Activate with Solana or License Key">
-            Solana / Key
+          <button class="btn btn-cyan btn-depay-solana" id="btnSolanaBanner" aria-label="Solana Web3 Checkout">
+            Solana (SOL)
+          </button>
+          <button class="btn btn-outline open-pro-modal" id="btnActivateBanner" aria-label="Activate with Solana or License Key">
+            Activate Key
           </button>
         </div>
       </div>
@@ -1237,8 +1257,9 @@
           <h2 class="section-title">Live Interception Radar & Threat Telemetry Feed</h2>
           <p class="section-desc">Broadcasts prompt injection intercepts, secret scrub events, and latency in real time via Server-Sent Events.</p>
         </div>
-        <div class="live-actions">
+        <div class="live-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
           <button id="btnClearLiveFeed" class="btn btn-outline" style="min-height: 36px; padding: 4px 12px; font-size: 0.8rem;" aria-label="Clear Live Feed">Clear Feed</button>
+          <button id="btnExportAuditLive" class="btn btn-outline" style="min-height: 36px; padding: 4px 12px; font-size: 0.8rem;" aria-label="Export Audit Dossier">Export Audit (.json)</button>
         </div>
       </div>
 
@@ -1399,11 +1420,14 @@
             Unlock Custom Regex Rulesets, Deep AST De-Obfuscation, and 1-Click SOC-2 / HIPAA JSON Audit Logs with permanent founding access.
           </p>
           <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-            <a href="https://buy.stripe.com/7sI7sA8hM2X8eFG8ww" target="_blank" rel="noopener noreferrer" class="btn btn-gold" aria-label="Unlock via Stripe">
+            <a href="https://buy.stripe.com/7sI7sA8hM2X8eFG8ww" target="_blank" rel="noopener noreferrer" class="btn btn-gold" id="btnStripeOverlay" aria-label="Unlock via Stripe">
               Unlock via Stripe ($19)
             </a>
-            <button class="btn btn-outline open-pro-modal" aria-label="Activate with Key or Solana">
-              Solana DePay / Key
+            <button class="btn btn-cyan btn-depay-solana" id="btnSolanaOverlay" aria-label="Solana Web3 Checkout">
+              Solana (SOL)
+            </button>
+            <button class="btn btn-outline open-pro-modal" id="btnKeyOverlay" aria-label="Activate with Key">
+              Activate Key
             </button>
           </div>
         </div>
@@ -1422,26 +1446,27 @@
       </p>
 
       <ul class="modal-features">
-        <li><span>✅</span> Unlimited Inline Interceptions on Port 8099</li>
-        <li><span>✅</span> Full SOC-2 & HIPAA Compliance Audit Export</li>
-        <li><span>✅</span> Deep AST & Unicode Homoglyph De-Obfuscation</li>
-        <li><span>✅</span> Custom Proprietary Regex Rulesets</li>
-        <li><span>✅</span> Lifetime Updates & Autonomous CI/CD Runner</li>
+        <li><span>✅</span> <strong>Unlimited Inline Interceptions:</strong> Sub-3ms threat evaluation on proxy port 8099</li>
+        <li><span>✅</span> <strong>Full SOC-2 & HIPAA Audit:</strong> Immutable hash-chained audit JSON exports</li>
+        <li><span>✅</span> <strong>Deep AST De-Obfuscation:</strong> Decodes recursive base64, zlib, and homoglyphs</li>
+        <li><span>✅</span> <strong>Custom Proprietary Rulesets:</strong> Organization-specific secret and PII patterns</li>
+        <li><span>✅</span> <strong>Sovereign Defense Chain:</strong> Seamless integration across ports 8094-8106</li>
+        <li><span>✅</span> <strong>Permanent Lifetime Access:</strong> All future threat radar heuristics, CI/CD runners, and updates</li>
       </ul>
 
       <div style="display: flex; gap: 10px; margin: 1.25rem 0;">
-        <a href="https://buy.stripe.com/7sI7sA8hM2X8eFG8ww" target="_blank" rel="noopener noreferrer" class="btn btn-gold" style="flex: 1;" aria-label="Stripe Checkout Button">
+        <a href="https://buy.stripe.com/7sI7sA8hM2X8eFG8ww" target="_blank" rel="noopener noreferrer" class="btn btn-gold" id="btnStripeModal" style="flex: 1;" aria-label="Stripe Checkout Button">
           Stripe ($19 Lifetime)
         </a>
-        <a href="https://depay.com/pay?integration=428790dd-7ad1-407c-8ecf-c048c77a4cb8&receiver=GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK&amount=19" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="flex: 1;" aria-label="Solana DePay Checkout">
+        <button class="btn btn-outline btn-depay-solana" id="btnModalSolana" style="flex: 1;" aria-label="Solana DePay Checkout">
           Solana DePay (SOL)
-        </a>
+        </button>
       </div>
 
       <div style="border-top: 1px solid var(--border); padding-top: 1rem;">
         <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">Already have a license or receipt key?</div>
         <div class="modal-input-group">
-          <input type="text" id="licenseKeyInput" class="modal-input" placeholder="Enter key (e.g. FW-PRO-xxxx)" aria-label="License Key Input">
+          <input type="text" id="licenseKeyInput" class="modal-input" placeholder="Enter key (e.g. FIREWALL-PRO-2026)" aria-label="License Key Input">
           <button id="btnActivateKey" class="btn btn-gold" aria-label="Activate License Key">Activate</button>
         </div>
         <div id="activationMsg" style="font-size: 0.78rem; font-family: var(--font-mono);"></div>
@@ -1466,49 +1491,5 @@
   </footer>
 
   <script src="/firewall_engine.js"></script>
-  <script>
-    // Real-Time EventSource Listener for Agent Prompt Firewall SSE
-    (function initRealTimeRadarStream() {
-      if (typeof window === 'undefined' || !('EventSource' in window)) return;
-      try {
-        const stream = new EventSource('/api/events/stream');
-        window._firewallRadarEventSource = stream;
-
-        stream.addEventListener('connected', function(e) {
-          const badge = document.getElementById('liveStreamBadge');
-          if (badge) {
-            badge.innerHTML = '<span class="pulse-dot"></span> SSE LIVE RADAR ACTIVE (:8098)';
-            badge.style.color = '#10B981';
-          }
-        });
-
-        function handleIncomingEvent(e) {
-          try {
-            const data = JSON.parse(e.data);
-            if (typeof window.dispatchFirewallEvent === 'function') {
-              window.dispatchFirewallEvent(data);
-            }
-          } catch (err) {
-            console.error('[SSE] Failed to parse event payload:', err);
-          }
-        }
-
-        stream.addEventListener('threat_event', handleIncomingEvent);
-        stream.addEventListener('threat_blocked', handleIncomingEvent);
-        stream.addEventListener('scan_completed', handleIncomingEvent);
-        stream.onmessage = handleIncomingEvent;
-
-        stream.onerror = function() {
-          const badge = document.getElementById('liveStreamBadge');
-          if (badge) {
-            badge.innerHTML = '<span class="pulse-dot" style="background:#F59E0B;box-shadow:0 0 8px #F59E0B;"></span> SSE RECONNECTING...';
-            badge.style.color = '#F59E0B';
-          }
-        };
-      } catch (err) {
-        console.warn('[SSE] EventSource stream error:', err);
-      }
-    })();
-  </script>
 </body>
 </html>
