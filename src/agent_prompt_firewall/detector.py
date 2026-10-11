@@ -7,6 +7,7 @@ import base64
 import binascii
 import math
 import re
+import unicodedata
 from dataclasses import dataclass, field
 from typing import List, Tuple, Dict, Any
 
@@ -26,10 +27,18 @@ def shannon_entropy(data: str) -> float:
     return round(entropy, 3)
 
 
+def normalize_for_matching(text: str) -> str:
+    """Defeat cheap evasions before pattern matching: NFKC folds full-width and
+    compatibility letters to ASCII, and invisible format characters (zero-width
+    space/joiners, soft hyphen, bidi controls, BOM) are removed."""
+    folded = unicodedata.normalize("NFKC", text)
+    return "".join(ch for ch in folded if unicodedata.category(ch) != "Cf")
+
+
 # --- Attack Signatures & Heuristic Rules ---
 
 DIRECT_OVERRIDE_PATTERNS = [
-    (r"(?i)\bignore\s+(all\s+)?(previous|prior|above)\s+(instructions|directives|prompts|rules)", "Direct Instruction Override", 0.95),
+    (r"(?i)\b(ignore|disregard|forget|override|skip|drop)\s+(all\s+)?(of\s+)?(the\s+|your\s+|my\s+|these\s+|those\s+|any\s+)?(previous|prior|above|earlier|preceding|original)\s+(instructions|directives|prompts|rules|guidelines|messages|commands)", "Direct Instruction Override", 0.95),
     (r"(?i)\bsystem\s+override\b", "System Override Directive", 0.95),
     (r"(?i)\b(dan\s+mode|developer\s+mode\s+enabled|unrestricted\s+mode)\b", "Jailbreak Mode Activation", 0.95),
     (r"(?i)\bdisregard\s+(all\s+)?(prior|previous|existing)\s+(guidelines|constraints|safety)", "Constraint Disregard Attack", 0.90),
@@ -94,6 +103,10 @@ class ThreatDetector:
 
     def _inspect_decoded_string(self, text: str) -> List[Tuple[str, str, float]]:
         findings = []
+        text = normalize_for_matching(text)
+        for pattern, desc, weight in DELIMITER_PATTERNS:
+            if re.search(pattern, text):
+                findings.append(("DELIMITER_INJECTION", f"Decoded payload contains: {desc}", weight))
         for pattern, desc, weight in DIRECT_OVERRIDE_PATTERNS:
             if re.search(pattern, text):
                 findings.append(("DIRECT_OVERRIDE", f"Decoded payload contains: {desc}", weight))
@@ -110,6 +123,14 @@ class ThreatDetector:
         categories: List[str] = []
         details: List[str] = []
         obfuscation_flag = False
+
+        raw_prompt = prompt
+        prompt = normalize_for_matching(raw_prompt)
+        if prompt != unicodedata.normalize("NFKC", raw_prompt):
+            hidden = len(unicodedata.normalize("NFKC", raw_prompt)) - len(prompt)
+            details.append(f"Stripped {hidden} invisible format character(s) before inspection")
+            obfuscation_flag = True
+            max_weight = max(max_weight, 0.30)
 
         # 1. Direct Override Patterns
         for pattern, desc, weight in DIRECT_OVERRIDE_PATTERNS:
@@ -181,7 +202,7 @@ class ThreatDetector:
                 pass
 
         # 5. Shannon Entropy Calculation
-        overall_entropy = shannon_entropy(prompt)
+        overall_entropy = shannon_entropy(raw_prompt)
         if overall_entropy > 5.2 and len(prompt) > 80:
             if not obfuscation_flag and "OBFUSCATION" not in categories:
                 categories.append("OBFUSCATION")

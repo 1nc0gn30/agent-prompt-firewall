@@ -279,7 +279,7 @@ class FirewallRequestHandler(BaseHTTPRequestHandler):
 class WebRadarServer:
     """Manager for the Web Radar Dashboard server."""
 
-    def __init__(self, host: str = "0.0.0.0", port: int = 8098, storage: Optional[FirewallStorage] = None):
+    def __init__(self, host: str = "127.0.0.1", port: int = 8098, storage: Optional[FirewallStorage] = None):
         self.host = host
         self.port = port
         self.storage = storage or FirewallStorage()

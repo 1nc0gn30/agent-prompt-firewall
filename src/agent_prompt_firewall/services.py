@@ -18,9 +18,9 @@ class FirewallServicesManager:
 
     def __init__(
         self,
-        web_host: str = "0.0.0.0",
+        web_host: str = "127.0.0.1",
         web_port: int = 8098,
-        proxy_host: str = "0.0.0.0",
+        proxy_host: str = "127.0.0.1",
         proxy_port: int = 8099,
         db_path: str = "firewall.db",
         upstream_url: Optional[str] = None,

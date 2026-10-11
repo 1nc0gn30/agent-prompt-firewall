@@ -193,14 +193,28 @@ class ProxyRequestHandler(BaseHTTPRequestHandler):
         sanitized_body = json.dumps(sanitized_payload).encode("utf-8") if is_json else self.redactor.redact(body_text).redacted_text.encode("utf-8")
 
         # 4. Route or Mock
-        upstream = self.headers.get("x-target-url") or self.upstream_url or os.environ.get("FIREWALL_UPSTREAM")
+        upstream = self.upstream_url or os.environ.get("FIREWALL_UPSTREAM")
+        override = self.headers.get("x-target-url")
+        if override:
+            # Per-request upstream override turns the proxy into an open relay (SSRF to
+            # internal services), so it is opt-in and limited to http(s).
+            if os.environ.get("FIREWALL_ALLOW_TARGET_OVERRIDE") == "1" and \
+                    urllib.parse.urlparse(override).scheme in ("http", "https"):
+                upstream = override
+            else:
+                self.send_response(403)
+                self._set_cors_headers()
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "x-target-url override disabled; set FIREWALL_ALLOW_TARGET_OVERRIDE=1 to enable"}).encode())
+                return
         resp_body: bytes = b""
         resp_status = 200
 
         if upstream:
             # Forward to upstream
             target_url = f"{upstream.rstrip('/')}{self.path}"
-            headers = {k: v for k, v in self.headers.items() if k.lower() not in ("host", "content-length")}
+            headers = {k: v for k, v in self.headers.items() if k.lower() not in ("host", "content-length", "x-target-url")}
             headers["Host"] = urllib.parse.urlparse(target_url).netloc
             try:
                 req = urllib.request.Request(target_url, data=sanitized_body, headers=headers, method="POST")
@@ -310,7 +324,7 @@ class ProxyRequestHandler(BaseHTTPRequestHandler):
 class ProxyService:
     """Manager for the background ThreadedProxyServer."""
 
-    def __init__(self, host: str = "0.0.0.0", port: int = 8099, storage: Optional[FirewallStorage] = None, upstream_url: Optional[str] = None):
+    def __init__(self, host: str = "127.0.0.1", port: int = 8099, storage: Optional[FirewallStorage] = None, upstream_url: Optional[str] = None):
         self.host = host
         self.port = port
         self.storage = storage or FirewallStorage()

@@ -37,15 +37,18 @@ def cmd_serve(args: argparse.Namespace):
     print("  Real-Time Prompt Injection Defense & Data Leak Prevention")
     print("=" * 68)
 
-    web_server = WebRadarServer(host="0.0.0.0", port=web_port, storage=storage)
-    proxy_service = ProxyService(host="0.0.0.0", port=proxy_port, storage=storage, upstream_url=upstream)
+    host = args.host
+    if host not in ("127.0.0.1", "localhost", "::1"):
+        print(f"[!] WARNING: binding to {host} exposes the proxy and radar to your network.")
+    web_server = WebRadarServer(host=host, port=web_port, storage=storage)
+    proxy_service = ProxyService(host=host, port=proxy_port, storage=storage, upstream_url=upstream)
 
     try:
         web_server.start()
         proxy_service.start()
-        print(f"[*] Web Radar UI:        http://0.0.0.0:{web_port}/")
-        print(f"[*] Inline Proxy:        http://0.0.0.0:{proxy_port}/")
-        print(f"[*] Intercepted Base:    http://0.0.0.0:{proxy_port}/v1")
+        print(f"[*] Web Radar UI:        http://{host}:{web_port}/")
+        print(f"[*] Inline Proxy:        http://{host}:{proxy_port}/")
+        print(f"[*] Intercepted Base:    http://{host}:{proxy_port}/v1")
         if upstream:
             print(f"[*] Target Upstream:     {upstream}")
         else:
@@ -208,6 +211,7 @@ def main():
     p_serve.add_argument("--proxy-port", type=int, default=8099, help="Inline proxy port (default: 8099)")
     p_serve.add_argument("--db", default="firewall.db", help="SQLite database path")
     p_serve.add_argument("--upstream", default=None, help="Upstream LLM target URL (optional)")
+    p_serve.add_argument("--host", default="127.0.0.1", help="Bind address (default 127.0.0.1; use 0.0.0.0 only on trusted networks)")
     p_serve.set_defaults(func=cmd_serve)
 
     # scan

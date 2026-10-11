@@ -71,6 +71,20 @@ HTTP_PROXY=http://127.0.0.1:8099
 
 ---
 
+## 🔐 Network Exposure & Hardening
+
+- `serve` binds the radar UI and proxy to **127.0.0.1** by default. Pass
+  `--host 0.0.0.0` only on a trusted network (a warning is printed).
+- The per-request `x-target-url` upstream override is **disabled** (HTTP 403)
+  because it lets any client use the proxy as an open relay to internal
+  services. Opt in with `FIREWALL_ALLOW_TARGET_OVERRIDE=1` (http/https only);
+  the header is never forwarded upstream. Prefer `--upstream` / `FIREWALL_UPSTREAM`.
+- Prompts are Unicode-normalised (NFKC, invisible format characters removed)
+  before matching, so zero-width, soft-hyphen, bidi and full-width tricks do
+  not slip past the rules; overrides like "ignore the/your/all of the previous
+  instructions" and "forget/disregard earlier guidelines" are caught, and
+  decoded base64/hex payloads are checked for chat-template delimiters too.
+
 ## 🧪 Testing
 
 Run the zero-dependency test suite:
