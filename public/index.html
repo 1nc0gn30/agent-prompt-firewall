@@ -1163,7 +1163,8 @@
         </a>
 
         <div class="header-actions">
-          <span id="pro-badge" class="badge-free">⚡ FREE TIER</span>
+          <span class="badge" style="background: rgba(212,175,55,0.15); color: #F59E0B; border: 1px solid rgba(212,175,55,0.3); font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 700;">v2.5 SOVEREIGN</span>
+          <span id="licenseBadge" class="badge-free" data-alias="pro-badge">⚡ FREE TIER</span>
           <button class="btn btn-gold open-pro-modal" id="btnHeaderUpgrade" aria-label="Unlock Pro License">Upgrade Pro</button>
         </div>
       </div>
@@ -1173,7 +1174,7 @@
   <main class="container">
 
     <!-- High-Converting Sales Funnel Banner Above Main Section -->
-    <section class="sales-banner" id="paywallBanner" aria-label="Founding Member Lifetime Offer">
+    <section class="sales-banner" id="salesBanner" data-alias="paywallBanner" aria-label="Founding Member Lifetime Offer">
       <div class="banner-inner">
         <div class="banner-content">
           <span class="urgency-pill">⚡ FOUNDING MEMBER TIER</span>
@@ -1437,7 +1438,7 @@
   </main>
 
   <!-- Pro Modal -->
-  <div class="modal-backdrop" id="proModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-backdrop" id="proModal" data-alias="licenseModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-box">
       <button class="modal-close" id="closeProModal" aria-label="Close Pro Modal">&times;</button>
       <h3 class="modal-title" id="modalTitle">⭐ AGENT PROMPT FIREWALL PRO</h3>
@@ -1467,7 +1468,7 @@
         <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">Already have a license or receipt key?</div>
         <div class="modal-input-group">
           <input type="text" id="licenseKeyInput" class="modal-input" placeholder="Enter key (e.g. FIREWALL-PRO-2026)" aria-label="License Key Input">
-          <button id="btnActivateKey" class="btn btn-gold" aria-label="Activate License Key">Activate</button>
+          <button id="btnActivateKey" data-alias="btnActivateKey" class="btn btn-gold" aria-label="Activate License Key">Activate</button>
         </div>
         <div id="activationMsg" style="font-size: 0.78rem; font-family: var(--font-mono);"></div>
       </div>

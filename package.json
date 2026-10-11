@@ -1,0 +1,10 @@
+{
+  "name": "agent-prompt-firewall",
+  "version": "2.5.0",
+  "description": "Autonomous inline prompt injection defense, PII redactor, and threat radar for AI agents with dual Stripe + Solana checkout rails.",
+  "scripts": {
+    "serve": "python3 -m http.server 8098 --directory public"
+  },
+  "author": "Neal Frazier Tech (@1nc0gn30)",
+  "license": "MIT"
+}

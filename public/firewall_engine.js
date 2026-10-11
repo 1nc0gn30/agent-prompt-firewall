@@ -167,26 +167,48 @@
   // --- License Management ---
   function checkLicense() {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('licensed') === 'true') {
+    if (urlParams.get('licensed') === 'true' || urlParams.get('pro') === 'true' || urlParams.get('session_id')) {
       localStorage.setItem('agent_firewall_pro', 'true');
+      localStorage.setItem('zoth_firewall_licensed', 'true');
+      localStorage.setItem('pro_licensed', 'true');
       const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
       window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
     }
-    state.isPro = localStorage.getItem('agent_firewall_pro') === 'true';
+    state.isPro = (
+      localStorage.getItem('agent_firewall_pro') === 'true' ||
+      localStorage.getItem('zoth_firewall_licensed') === 'true' ||
+      localStorage.getItem('pro_licensed') === 'true'
+    );
     updateProUI();
   }
 
   function activateKey(key) {
-    if (!key || key.trim().length < 5) return false;
+    if (!key || key.trim().length < 4) return false;
     localStorage.setItem('agent_firewall_pro', 'true');
+    localStorage.setItem('zoth_firewall_licensed', 'true');
+    localStorage.setItem('pro_licensed', 'true');
     state.isPro = true;
     updateProUI();
     return true;
   }
 
+  window.activateLicenseKey = function(key) {
+    const k = (typeof key === 'string' && key) ? key : (document.getElementById('licenseKeyInput')?.value || '');
+    return activateKey(k);
+  };
+
+  window.openLicenseModal = function() {
+    const modal = document.getElementById('proModal');
+    if (modal) modal.style.display = 'flex';
+  };
+
   function updateProUI() {
-    const badges = [document.getElementById('pro-badge'), document.getElementById('proStatusBadge')].filter(Boolean);
-    const paywallBanner = document.getElementById('paywallBanner');
+    const badges = [
+      document.getElementById('licenseBadge'),
+      document.getElementById('pro-badge'),
+      document.getElementById('proStatusBadge')
+    ].filter(Boolean);
+    const paywallBanner = document.getElementById('salesBanner') || document.getElementById('paywallBanner');
     const paywallCard = document.getElementById('proLockedSection');
     const complianceLockOverlay = document.getElementById('complianceLockOverlay');
 
