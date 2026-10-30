@@ -22,8 +22,6 @@
   <meta name="twitter:image" content="https://firewall.nullai.tech/assets/banner.png">
 
   <!-- DePay Web3 Payments Integration -->
-  <script src="https://integrate.depay.com"></script>
-
   <!-- Distinctive Typography Pairing -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -50,10 +48,10 @@
         },
         "offers": {
           "@type": "Offer",
-          "price": "19.00",
+          "price": "0",
           "priceCurrency": "USD",
           "availability": "https://schema.org/InStock",
-          "url": "https://buy.stripe.com/4gMfZg9AheOsdhKbcAfw40L"
+          "url": "https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X"
         }
       },
       {
@@ -115,12 +113,18 @@
       padding: 0;
     }
 
+    html {
+      overflow-x: hidden;
+      max-width: 100vw;
+    }
+
     body {
       background-color: var(--bg);
       color: var(--text);
       font-family: var(--font-body);
       min-height: 100vh;
       overflow-x: hidden;
+      max-width: 100vw;
       line-height: 1.5;
     }
 
@@ -894,10 +898,10 @@
     }
 
     .frosted-locked {
-      filter: blur(6px);
-      pointer-events: none;
-      user-select: none;
-      opacity: 0.6;
+      filter: none !important;
+      pointer-events: auto !important;
+      user-select: auto !important;
+      opacity: 1 !important;
     }
 
     .compliance-card {
@@ -908,15 +912,7 @@
     }
 
     .lock-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 20;
+      display: none !important;
     }
 
     .lock-card {
@@ -958,7 +954,7 @@
       right: 0;
       bottom: 0;
       background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(8px);
+      backdrop-filter: none;
       z-index: 100;
       align-items: center;
       justify-content: center;
@@ -1084,9 +1080,38 @@
       }
     }
 
+    @media (max-width: 768px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+        height: auto;
+        padding: 10px 0;
+        gap: 10px;
+      }
+      .header-actions {
+        flex-wrap: wrap;
+        width: 100%;
+        gap: 6px;
+      }
+    }
+
     @media (max-width: 480px) {
       .container {
         padding: 0 0.5rem;
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+        height: auto;
+        padding: 8px 0;
+        gap: 8px;
+      }
+      .header-actions {
+        flex-wrap: wrap;
+        width: 100%;
+        gap: 6px;
       }
       .brand-title {
         font-size: 0.92rem;
@@ -1147,8 +1172,49 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="/wave.css">
+  <link rel="stylesheet" href="/wave-states.css">
+
+  <!-- Zoth 100% Open-Access & Buy Us a Coffee Invariant -->
+  <script id="zoth-open-access-init">
+    (function() {
+      try {
+        var keys = ['agent_audiocipher_pro', 'agent_cyber_turtle_pro', 'agent_datamosh_pro', 'agent_nexus3d_pro', 'agent_policy_pro', 'audiocipher_license', 'audiocipher_pro_licensed', 'badge3d_pro_licensed', 'certpath_pro_key', 'certpath_pro_licensed', 'cron_rhythm_pro_key', 'cron_rhythm_pro_licensed', 'cwv-speed-engine_pro_licensed', 'cwv_pro_licensed', 'cyber_turtle_pro_licensed', 'datamosh_pro_licensed', 'deepsearch-research-agent_pro_licensed', 'deepsearch_pro_licensed', 'entropy_studio_licensed', 'envguard-secrets-vault_pro_licensed', 'envguard_pro_license', 'etsy_connector_pro', 'jwt_guard_licensed', 'mdg_pro_licensed', 'neuro_pro_licensed', 'nexus3d_pro_licensed', 'omnipost_pro_key', 'omnipost_pro_licensed', 'osint_pro_licensed', 'payload-entropy-studio_pro_licensed', 'polyglot_pro_licensed', 'pro_licensed', 'promptmaster_pro_licensed', 'promptmaster_pro_active', 'robots-txt-auditor_pro_licensed', 'robots_pro_licensed', 'schema_illustrator_pro_licensed', 'sovereign_pro_licensed', 'subsweep-lead-scanner_pro_licensed', 'subsweep_licensed', 'turtle_pro_licensed', 'ufo_sacred_licensed', 'vector-search-engine_pro_licensed', 'vector_studio_pro_licensed', 'web-security-guard_pro_licensed', 'web_security_guard_licensed', 'yourdigitalspace_pro', 'zela_guide_pro_licensed', 'zoth_ascii_magic_pro', 'zoth_audiocipher_licensed', 'zoth_badge3d_licensed', 'zoth_cyber_turtle_licensed', 'zoth_datamosh_licensed', 'zoth_etsy_licensed', 'zoth_nexus3d_licensed', 'zoth_osint_licensed', 'zoth_policy_licensed', 'zoth_sacred_licensed', 'zoth_ufo_licensed'];
+        for (var i = 0; i < keys.length; i++) {
+          localStorage.setItem(keys[i], 'true');
+        }
+        localStorage.setItem('pm_license_v2', JSON.stringify({ method: 'open_access', ref: 'free_forever', at: '2026-01-01T00:00:00Z' }));
+        window.isPro = true;
+        window.isProLicensed = true;
+      } catch (e) {}
+    })();
+  </script>
+  <style id="zoth-open-access-override">
+    .paywall-overlay, .output-paywall-overlay, #outputPaywallOverlay, #schemaPaywallOverlay,
+    #transformerPaywallOverlay, #proPaywallModal, #licenseModal, #salesBanner, #founding-offer-banner,
+    #funnelHeroBanner, [data-alias="paywallOverlay"], [data-alias="founding-offer-banner"] {
+      display: none !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+    .paywall-wrap #outputPreview, .paywall-wrap #reportContentArea, .paywall-content,
+    .paywall-content.locked, .paywall-wrap.is-locked #outputPreview, .paywall-wrap.locked #outputPreview {
+      filter: none !important;
+      -webkit-filter: none !important;
+      user-select: auto !important;
+      pointer-events: auto !important;
+    }
+  </style>
+
 </head>
 <body>
+
+<div id="zoth-coffee-support-bar" style="background: linear-gradient(90deg, rgba(16,185,129,0.12), rgba(212,175,55,0.14)); border-bottom: 1px solid rgba(212,175,55,0.35); padding: 8px 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; z-index: 9999;">
+  <span style="color: #10B981; font-weight: 800;">✦ 100% FREE &amp; OPEN ACCESS · ZERO PAYWALLS</span>
+  <a href="https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X" target="_blank" rel="noopener noreferrer" style="background: #D4AF37; color: #08080B; padding: 4px 12px; border-radius: 6px; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">☕ Buy Us a Coffee (Stripe)</a>
+  <a href="solana:GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK" onclick="if(navigator.clipboard){navigator.clipboard.writeText('GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK');this.textContent='✓ Copied GG2eQb...dXoK!';}" style="background: rgba(20,241,149,0.15); color: #14F195; border: 1px solid rgba(20,241,149,0.45); padding: 4px 12px; border-radius: 6px; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">◎ Solana Tip (GG2e...dXoK)</a>
+</div>
+
 
   <!-- Navigation Header -->
   <header>
@@ -1164,39 +1230,14 @@
 
         <div class="header-actions">
           <span class="badge" style="background: rgba(212,175,55,0.15); color: #F59E0B; border: 1px solid rgba(212,175,55,0.3); font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 700;">v2.5 SOVEREIGN</span>
-          <span id="licenseBadge" class="badge-free" data-alias="pro-badge">⚡ FREE TIER</span>
-          <button class="btn btn-gold open-pro-modal" id="btnHeaderUpgrade" aria-label="Unlock Pro License">Upgrade Pro</button>
+          <span id="licenseBadge" class="badge-free" style="background: rgba(16,185,129,0.15); color: #10B981; border: 1px solid rgba(16,185,129,0.3); font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 700;">✦ 100% FREE &amp; OPEN ACCESS</span>
+          <a href="https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X" target="_blank" rel="noopener noreferrer" class="btn btn-gold" id="btnHeaderUpgrade" style="text-decoration: none;" aria-label="Buy Us a Coffee">☕ Buy Us a Coffee</a>
         </div>
       </div>
     </div>
   </header>
 
   <main class="container">
-
-    <!-- High-Converting Sales Funnel Banner Above Main Section -->
-    <section class="sales-banner" id="salesBanner" data-alias="paywallBanner" aria-label="Founding Member Lifetime Offer">
-      <div class="banner-inner">
-        <div class="banner-content">
-          <span class="urgency-pill">⚡ FOUNDING MEMBER TIER</span>
-          <div class="banner-text">
-            <strong>Lock Down Your Agent Runtime:</strong> Lifetime Unlimited Access for 
-            <span class="price-strike">$79</span> 
-            <span class="price-highlight">$19</span> (Save 76%)
-          </div>
-        </div>
-        <div class="banner-ctas">
-          <a href="https://buy.stripe.com/4gMfZg9AheOsdhKbcAfw40L" target="_blank" rel="noopener noreferrer" class="btn btn-gold" id="btnStripeBanner" aria-label="Instant Stripe Checkout">
-            Stripe Checkout ($19)
-          </a>
-          <button class="btn btn-cyan btn-depay-solana" id="btnSolanaBanner" aria-label="Solana Web3 Checkout">
-            Solana (SOL)
-          </button>
-          <button class="btn btn-outline open-pro-modal" id="btnActivateBanner" aria-label="Activate with Solana or License Key">
-            Activate Key
-          </button>
-        </div>
-      </div>
-    </section>
 
     <!-- Hero Section -->
     <section class="hero" aria-label="Hero Overview">
@@ -1387,14 +1428,14 @@
       </div>
     </section>
 
-    <!-- Frosted Glass Paywall: Advanced Compliance & Custom Heuristics -->
-    <section class="compliance-wrapper" id="paywall" aria-label="Pro Compliance Suite">
+    <!-- Sovereign Compliance & Custom Heuristics -->
+    <section class="compliance-wrapper" id="complianceSuite" aria-label="Sovereign Compliance Suite">
       <div class="section-header">
         <h2 class="section-title">Enterprise Compliance & Custom Heuristics</h2>
         <p class="section-desc">Automated SOC-2 Type II audit exports, HIPAA de-identification manifests, and custom AST de-obfuscation.</p>
       </div>
 
-      <div class="compliance-card frosted-locked" id="proLockedSection">
+      <div class="compliance-card" id="proLockedSection">
         <div class="compliance-grid">
           <div style="background: var(--card-surface); padding: 1rem; border-radius: 8px;">
             <div style="font-weight: 700; color: var(--gold); margin-bottom: 4px;">SOC-2 Type II Logs</div>
@@ -1411,69 +1452,9 @@
         </div>
         <button id="btnExportAudit" class="btn btn-gold" aria-label="Export Full Compliance Audit">Export Compliance Audit JSON</button>
       </div>
-
-      <!-- Glowing Lock Overlay -->
-      <div class="lock-overlay" id="complianceLockOverlay">
-        <div class="lock-card">
-          <div class="lock-icon" aria-hidden="true">★</div>
-          <div class="lock-title">PRO COMPLIANCE SUITE LOCKED</div>
-          <p class="lock-desc">
-            Unlock Custom Regex Rulesets, Deep AST De-Obfuscation, and 1-Click SOC-2 / HIPAA JSON Audit Logs with permanent founding access.
-          </p>
-          <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-            <a href="https://buy.stripe.com/4gMfZg9AheOsdhKbcAfw40L" target="_blank" rel="noopener noreferrer" class="btn btn-gold" id="btnStripeOverlay" aria-label="Unlock via Stripe">
-              Unlock via Stripe ($19)
-            </a>
-            <button class="btn btn-cyan btn-depay-solana" id="btnSolanaOverlay" aria-label="Solana Web3 Checkout">
-              Solana (SOL)
-            </button>
-            <button class="btn btn-outline open-pro-modal" id="btnKeyOverlay" aria-label="Activate with Key">
-              Activate Key
-            </button>
-          </div>
-        </div>
-      </div>
     </section>
 
   </main>
-
-  <!-- Pro Modal -->
-  <div class="modal-backdrop" id="proModal" data-alias="licenseModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal-box">
-      <button class="modal-close" id="closeProModal" aria-label="Close Pro Modal">&times;</button>
-      <h3 class="modal-title" id="modalTitle">⭐ AGENT PROMPT FIREWALL PRO</h3>
-      <p style="font-size: 0.88rem; color: var(--text-muted);">
-        Activate your founding member license to unlock all advanced enterprise compliance modules and remove all limitations.
-      </p>
-
-      <ul class="modal-features">
-        <li><span>✅</span> <strong>Unlimited Inline Interceptions:</strong> Sub-3ms threat evaluation on proxy port 8099</li>
-        <li><span>✅</span> <strong>Full SOC-2 & HIPAA Audit:</strong> Immutable hash-chained audit JSON exports</li>
-        <li><span>✅</span> <strong>Deep AST De-Obfuscation:</strong> Decodes recursive base64, zlib, and homoglyphs</li>
-        <li><span>✅</span> <strong>Custom Proprietary Rulesets:</strong> Organization-specific secret and PII patterns</li>
-        <li><span>✅</span> <strong>Sovereign Defense Chain:</strong> Seamless integration across ports 8094-8106</li>
-        <li><span>✅</span> <strong>Permanent Lifetime Access:</strong> All future threat radar heuristics, CI/CD runners, and updates</li>
-      </ul>
-
-      <div style="display: flex; gap: 10px; margin: 1.25rem 0;">
-        <a href="https://buy.stripe.com/4gMfZg9AheOsdhKbcAfw40L" target="_blank" rel="noopener noreferrer" class="btn btn-gold" id="btnStripeModal" style="flex: 1;" aria-label="Stripe Checkout Button">
-          Stripe ($19 Lifetime)
-        </a>
-        <button class="btn btn-outline btn-depay-solana" id="btnModalSolana" style="flex: 1;" aria-label="Solana DePay Checkout">
-          Solana DePay (SOL)
-        </button>
-      </div>
-
-      <div style="border-top: 1px solid var(--border); padding-top: 1rem;">
-        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">Already have a license or receipt key?</div>
-        <div class="modal-input-group">
-          <input type="text" id="licenseKeyInput" class="modal-input" placeholder="Enter key (e.g. FIREWALL-PRO-2026)" aria-label="License Key Input">
-          <button id="btnActivateKey" data-alias="btnActivateKey" class="btn btn-gold" aria-label="Activate License Key">Activate</button>
-        </div>
-        <div id="activationMsg" style="font-size: 0.78rem; font-family: var(--font-mono);"></div>
-      </div>
-    </div>
-  </div>
 
   <!-- Footer with Subtle Attribution -->
   <footer>

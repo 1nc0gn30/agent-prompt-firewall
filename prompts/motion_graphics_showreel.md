@@ -43,7 +43,7 @@ Sound Effect: Rapid high-frequency mechanical data clicks and ascending synth ch
 
 [SCENE 4: CALL TO ACTION & SOVEREIGN MARCH - 11.5s - 15.0s]
 Action: Fast zoom back out to the Hexagonal Aegis Prism, now crowned with the Gold Pro Badge (`⭐ PRO ACTIVE`).
-Dual payment rails gleam at bottom: Stripe 1-Click + Solana DePay.
+Dual payment rails gleam at bottom: Stripe 1-Click + Solana Tip.
 Primary Heading:
 "AGENT PROMPT FIREWALL"
 Subheading:

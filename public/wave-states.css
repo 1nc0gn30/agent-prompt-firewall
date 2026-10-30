@@ -1,0 +1,171 @@
+/* Agent Prompt Firewall • Wave States Refinement
+ * Focus-visible, hover, empty and error presentation, prefers-reduced-motion
+ * Anchor: Precision Threat Radar Instrumentation
+ */
+
+/* 1. Accessible Focus-Visible States */
+a.brand:focus-visible,
+.footer-links a:focus-visible,
+.btn:focus-visible,
+.modal-close:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.modal-input:focus-visible,
+.preset-select:focus-visible,
+.prompt-textarea:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+  border-color: var(--gold);
+}
+
+.btn-cyan:focus-visible {
+  outline: 2px solid #22D3EE;
+  outline-offset: 3px;
+}
+
+/* 2. Interactive Hover States */
+.btn {
+  transition: background-color 150ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 150ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 150ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-cyan:hover {
+  background: rgba(6, 182, 212, 0.18);
+  border-color: #22D3EE;
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.3);
+}
+
+.modal-close {
+  transition: color 150ms ease, background-color 150ms ease;
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+
+.modal-close:hover {
+  color: var(--text);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.modal-input {
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.modal-input:hover:not(:focus) {
+  border-color: rgba(212, 175, 55, 0.45);
+}
+
+.preset-select {
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.preset-select:hover {
+  border-color: rgba(212, 175, 55, 0.55);
+}
+
+.prompt-textarea {
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.prompt-textarea:hover:not(:focus) {
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+.stat-card {
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+
+.stat-card:hover {
+  border-color: rgba(212, 175, 55, 0.35);
+}
+
+.live-log-item:hover {
+  background: rgba(24, 24, 32, 0.95);
+}
+
+a.brand {
+  transition: opacity 150ms ease;
+}
+
+a.brand:hover {
+  opacity: 0.92;
+}
+
+/* 3. Empty Presentation */
+.live-log-empty {
+  border: 1px dashed rgba(212, 175, 55, 0.22);
+  border-radius: 8px;
+  background: rgba(18, 18, 23, 0.45);
+  transition: border-color 180ms ease;
+}
+
+.empty-icon {
+  color: var(--gold);
+  filter: drop-shadow(0 0 8px var(--gold-glow));
+}
+
+.empty-title {
+  letter-spacing: -0.01em;
+}
+
+.prompt-textarea::placeholder,
+.modal-input::placeholder {
+  color: rgba(156, 163, 175, 0.6);
+  font-style: normal;
+}
+
+/* 4. Error Presentation */
+#activationMsg:not(:empty) {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(18, 18, 23, 0.92);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.live-log-item.item-blocked {
+  box-shadow: inset 0 0 12px rgba(239, 68, 68, 0.08);
+}
+
+.pill-decision-blocked,
+.badge-critical,
+.decision-blocked {
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.25);
+}
+
+/* 5. Prefers-Reduced-Motion Accessibility Invariant */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .pulse-dot {
+    animation: none !important;
+  }
+
+  .live-log-item,
+  .threat-details-box li,
+  .threat-badge,
+  .decision-badge,
+  .btn {
+    animation: none !important;
+    transform: none !important;
+  }
+}

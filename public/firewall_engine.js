@@ -9,7 +9,7 @@
 
   // State
   const state = {
-    isPro: false,
+    isPro: true,
     stats: {
       totalScans: 0,
       totalBlocked: 0,
@@ -198,8 +198,7 @@
   };
 
   window.openLicenseModal = function() {
-    const modal = document.getElementById('proModal');
-    if (modal) modal.style.display = 'flex';
+    // 100% Free & Open Access
   };
 
   function updateProUI() {
@@ -212,25 +211,17 @@
     const paywallCard = document.getElementById('proLockedSection');
     const complianceLockOverlay = document.getElementById('complianceLockOverlay');
 
-    if (state.isPro) {
-      badges.forEach(badge => {
-        badge.innerHTML = '⭐ PRO ACTIVE';
-        badge.classList.remove('badge-free');
-        badge.classList.add('badge-pro');
-      });
-      if (paywallBanner) paywallBanner.style.display = 'none';
-      if (paywallCard) paywallCard.classList.remove('frosted-locked');
-      if (complianceLockOverlay) complianceLockOverlay.style.display = 'none';
-    } else {
-      badges.forEach(badge => {
-        badge.innerHTML = '⚡ FREE TIER';
-        badge.classList.add('badge-free');
-        badge.classList.remove('badge-pro');
-      });
-      if (paywallBanner) paywallBanner.style.display = 'block';
-      if (paywallCard) paywallCard.classList.add('frosted-locked');
-      if (complianceLockOverlay) complianceLockOverlay.style.display = 'flex';
-    }
+    badges.forEach(badge => {
+      badge.innerHTML = '✦ 100% FREE & OPEN ACCESS';
+      badge.classList.remove('badge-free');
+      badge.classList.add('badge-pro');
+      badge.style.background = 'rgba(16,185,129,0.15)';
+      badge.style.color = '#10B981';
+      badge.style.border = '1px solid rgba(16,185,129,0.3)';
+    });
+    if (paywallBanner) paywallBanner.style.display = 'none';
+    if (paywallCard) paywallCard.classList.remove('frosted-locked');
+    if (complianceLockOverlay) complianceLockOverlay.style.display = 'none';
   }
 
   // --- Interactive UI Wiring ---
@@ -614,29 +605,22 @@
       btnExportAuditLive.addEventListener('click', triggerExportAudit);
     }
 
-    // DePay Solana Web3 Checkout
+    // Solana Tip Address Handler
     const depayBtns = document.querySelectorAll('.btn-depay-solana');
     depayBtns.forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
-        if (window.DePay && window.DePay.Payment) {
-          try {
-            window.DePay.Payment({
-              accept: [
-                {
-                  blockchain: 'solana',
-                  token: '11111111111111111111111111111111',
-                  receiver: 'GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK',
-                  amount: 19
-                }
-              ]
-            });
-            return;
-          } catch (err) {
-            console.warn('DePay widget fallback:', err);
-          }
+        const address = 'GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(address).then(() => {
+            btn.innerText = 'Copied SOL Address! ✓';
+            setTimeout(() => { btn.innerText = 'Solana (SOL)'; }, 2000);
+          }).catch(() => {
+            prompt('Copy Solana Tip Address:', address);
+          });
+        } else {
+          prompt('Copy Solana Tip Address:', address);
         }
-        window.open('https://depay.com/pay?integration=428790dd-7ad1-407c-8ecf-c048c77a4cb8&receiver=GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK&amount=19', '_blank');
       });
     });
   }
@@ -840,7 +824,7 @@
   function escapeHtml(str) {
     if (!str) return '';
     return String(str)
-      .replace(/&/g, '&amp;')
+      .replace(/&/g, '&')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');

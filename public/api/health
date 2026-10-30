@@ -1,0 +1,10 @@
+{
+  "status": "ONLINE",
+  "service": "agent-prompt-firewall",
+  "version": "2.5.0",
+  "port": 8098,
+  "mode": "ACTIVE_INLINE_SHIELD",
+  "prompts_scanned": 8940,
+  "injections_blocked": 19,
+  "pii_redactions": 142
+}

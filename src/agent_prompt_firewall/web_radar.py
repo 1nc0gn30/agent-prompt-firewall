@@ -81,7 +81,7 @@ class FirewallRequestHandler(BaseHTTPRequestHandler):
     def do_HEAD(self):
         # Support HEAD requests for automated checkers, health probes, and crawlers
         path = self.path.split("?")[0]
-        if path.startswith("/api/"):
+        if path in ("/health", "/api/health", "/status", "/api/status") or path.startswith("/api/"):
             if path in ("/api/events/stream", "/api/stream"):
                 self._set_headers(200, "text/event-stream")
             else:
@@ -93,6 +93,23 @@ class FirewallRequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         path = self.path.split("?")[0]
+
+        if path in ("/health", "/api/health", "/status", "/api/status"):
+            stats = self.storage.get_stats() if self.storage else {}
+            body = json.dumps({
+                "status": "ok",
+                "service": "agent-prompt-firewall",
+                "version": "2.5.0",
+                "web_port": 8098,
+                "proxy_port": 8198,
+                "stats": stats,
+                "license": "100% Free & Open Access (Zero Paywalls)"
+            }, indent=2).encode("utf-8")
+            self._set_headers(200, "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
 
         if path == "/api/stats":
             stats = self.storage.get_stats() if self.storage else {}
