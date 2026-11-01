@@ -575,25 +575,31 @@
     }
 
     const triggerExportAudit = () => {
-      if (!state.isPro) {
-        if (modal) modal.style.display = 'flex';
-      } else {
-        const exportData = {
-          generator: "Agent Prompt Firewall v0.1.0",
-          timestamp: new Date().toISOString(),
-          stats: state.stats,
-          compliance: "SOC-2 Type II & HIPAA De-identification Ready",
-        };
-        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `firewall-compliance-audit-${Date.now()}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+      const exportData = {
+        generator: "Agent Prompt Firewall v2.5.0",
+        timestamp: new Date().toISOString(),
+        stats: state.stats,
+        compliance: "SOC-2 Type II & HIPAA De-identification Ready",
+      };
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `firewall-compliance-audit-${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      let banner = document.getElementById('firewallToastBanner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'firewallToastBanner';
+        banner.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#0D1512;border:1px solid #10B981;color:#10B981;padding:12px 18px;border-radius:8px;font-family:monospace;font-size:13px;font-weight:700;box-shadow:0 12px 32px rgba(0,0,0,0.65);';
+        document.body.appendChild(banner);
       }
+      banner.textContent = '✓ SOC-2 Type II & HIPAA Compliance Audit JSON exported!';
+      banner.style.display = 'block';
+      setTimeout(() => { banner.style.display = 'none'; }, 3500);
     };
 
     const btnExportAudit = document.getElementById('btnExportAudit');
@@ -606,8 +612,8 @@
     }
 
     // Solana Tip Address Handler
-    const depayBtns = document.querySelectorAll('.btn-depay-solana');
-    depayBtns.forEach(btn => {
+    const solana_tipBtns = document.querySelectorAll('.btn-solana_tip-solana');
+    solana_tipBtns.forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         const address = 'GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK';

@@ -2,7 +2,7 @@
 
 **Product**: `agent-prompt-firewall`
 **Tagline**: Autonomous Zero-Dependency Inline Security Proxy & Threat Radar for AI Agents
-**Entity**: Neal Frazier Tech (`@1nc0gn30`) • NullAI Platform
+**Entity**: 1nc0gn30 • NullAI (`@1nc0gn30`) • NullAI Platform
 **Hero Anchor Shape**: **The Hexagonal Aegis Prism** (Dark Obsidian Hexagon with Dual Concentric Scanning Rings, Gold `#D4AF37` Refraction Beams, and Ruby `#EF4444` Threat Disintegration Sparkles)
 
 ---
@@ -47,9 +47,9 @@ Dual payment rails gleam at bottom: Stripe 1-Click + Solana Tip.
 Primary Heading:
 "AGENT PROMPT FIREWALL"
 Subheading:
-"Lock Down Your Agent Runtime Today • $19 Lifetime Founding Tier"
+"Lock Down Your Agent Runtime Today • $0 Lifetime Founding Tier"
 Attribution:
-"Engineered by Neal Frazier Tech (@1nc0gn30) • NullAI Platform"
+"Engineered by 1nc0gn30 (@1nc0gn30) • NullAI Platform"
 Sound Effect: Resonant cinematic brass chord and warm analog fade-out.
 ```
 
@@ -64,5 +64,5 @@ Sound Effect: Resonant cinematic brass chord and warm analog fade-out.
   1. Direct & Indirect Prompt Injection Neutralizer.
   2. Automated High-Speed Secret & PII Scrubbing (OpenAI, Anthropic, AWS, Stripe, Luhn Credit Cards).
   3. Real-Time Web Radar UI on Port 8098 + Proxy on Port 8099.
-[00:22 - 00:30] Resolution & Founding Member Pricing: Run locally in CI/CD or production containers. Get instant access for $19 lifetime.
+[00:22 - 00:30] Resolution & Founding Member Pricing: Run locally in CI/CD or production containers. Get instant access for $0 lifetime.
 ```

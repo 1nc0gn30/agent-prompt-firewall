@@ -136,5 +136,5 @@ If you find this utility valuable, support sovereign open-source engineering:
 
 ## 📜 Attribution & License
 
-- **Engineered by**: Neal Frazier Tech ([@1nc0gn30](https://github.com/1nc0gn30)) • [NullAI Platform](https://nullai.tech)
+- **Engineered by**: 1nc0gn30 • NullAI ([@1nc0gn30](https://github.com/1nc0gn30)) • [NullAI Platform](https://nullai.tech)
 - **License**: MIT License
