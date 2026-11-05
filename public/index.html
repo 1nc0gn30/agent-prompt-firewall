@@ -1476,5 +1476,21 @@
 
   <script src="/firewall_engine.js"></script>
   <script src="/assets/sovereign-upgrade.js" defer></script>
+
+  <script src="/sovereign_tutorial.js"></script>
+  <script>
+    window.addEventListener("DOMContentLoaded", function() {
+      if (window.createSovereignTutorial) {
+        window.createSovereignTutorial({
+          toolId: "agent-prompt-firewall",
+          toolName: "Agent Prompt Firewall",
+          tagline: "Shield your AI from prompt injections, jailbreaks, and sneaky overrides!",
+          accentColor: "#EF4444",
+          steps: [{"icon": "\ud83e\uddf1", "title": "What is Prompt Injection?", "desc": "Bad actors can hide secret text inside websites or user inputs that trick your AI into ignoring its rules or leaking passwords."}, {"icon": "\ud83d\udd2c", "title": "Real-Time AST & Semantic Inspection", "desc": "Scans every incoming token against zero-day jailbreak patterns, Base64 obfuscation, and delimiter hijacks."}, {"icon": "\u26a1", "title": "Zero-Latency Edge Gate", "desc": "Blocks dangerous prompts locally in under 15ms before they ever reach your LLM inference engine."}]
+        });
+      }
+    });
+  </script>
+
 </body>
 </html>
