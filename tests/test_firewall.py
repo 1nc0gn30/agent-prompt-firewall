@@ -6,6 +6,7 @@ Zero external pip dependencies (pytest only).
 import json
 import os
 import queue
+import socket
 import tempfile
 import threading
 import time
@@ -144,11 +145,17 @@ class TestStorage:
                 os.remove(db_path)
 
 
+def _free_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
 class TestServicesIntegration:
     @classmethod
     def setup_class(cls):
-        cls.web_port = 8188
-        cls.proxy_port = 8189
+        cls.web_port = _free_port()
+        cls.proxy_port = _free_port()
         cls.temp_db = tempfile.NamedTemporaryFile(suffix=".db", delete=False).name
         cls.storage = FirewallStorage(db_path=cls.temp_db)
 
@@ -340,16 +347,18 @@ class TestServicesIntegration:
         assert WebRadarDirectServer is not None
         temp_db = tempfile.NamedTemporaryFile(suffix=".db", delete=False).name
         try:
+            mgr_web_port = _free_port()
+            mgr_proxy_port = _free_port()
             manager = FirewallServicesManager(
-                web_port=8288,
-                proxy_port=8289,
+                web_port=mgr_web_port,
+                proxy_port=mgr_proxy_port,
                 db_path=temp_db
             )
             manager.start()
             time.sleep(0.3)
 
             # Test that /api/events/stream is active on the manager's web port
-            req = urllib.request.Request(f"http://127.0.0.1:8288/api/events/stream", method="HEAD")
+            req = urllib.request.Request(f"http://127.0.0.1:{mgr_web_port}/api/events/stream", method="HEAD")
             with urllib.request.urlopen(req) as resp:
                 assert resp.status == 200
                 assert "text/event-stream" in resp.headers.get("Content-Type", "")
