@@ -21,7 +21,7 @@ class FirewallServicesManager:
         web_host: str = "127.0.0.1",
         web_port: int = 8098,
         proxy_host: str = "127.0.0.1",
-        proxy_port: int = 8099,
+        proxy_port: int = 8198,
         db_path: str = "firewall.db",
         upstream_url: Optional[str] = None,
         block_threshold: float = 0.70
@@ -64,7 +64,7 @@ class FirewallServicesManager:
 
 def start_services(
     web_port: int = 8098,
-    proxy_port: int = 8099,
+    proxy_port: int = 8198,
     db_path: str = "firewall.db",
     upstream: Optional[str] = None
 ) -> FirewallServicesManager:

@@ -140,9 +140,9 @@ class FirewallRequestHandler(BaseHTTPRequestHandler):
 
         elif path == "/api/config":
             cfg = {
-                "version": "0.1.0",
+                "version": "2.5.0",
                 "web_port": 8098,
-                "proxy_port": 8099,
+                "proxy_port": 8198,
                 "block_threshold": 0.70,
                 "pii_rules": ["SSN", "EMAIL", "CREDIT_CARD", "PHONE_NUMBER"],
                 "secret_rules": ["OPENAI", "ANTHROPIC", "GOOGLE", "AWS", "GITHUB", "STRIPE", "PRIVATE_KEY", "DATABASE_URL"],

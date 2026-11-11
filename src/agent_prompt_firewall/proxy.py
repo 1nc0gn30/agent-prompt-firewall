@@ -76,8 +76,8 @@ class ProxyRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({
                 "status": "online",
                 "service": "agent-prompt-firewall-proxy",
-                "version": "0.1.0",
-                "port": 8099
+                "version": "2.5.0",
+                "port": self.server.server_port
             }).encode("utf-8"))
             return
 
@@ -352,7 +352,7 @@ class ProxyRequestHandler(BaseHTTPRequestHandler):
 class ProxyService:
     """Manager for the background ThreadedProxyServer."""
 
-    def __init__(self, host: str = "127.0.0.1", port: int = 8099, storage: Optional[FirewallStorage] = None, upstream_url: Optional[str] = None):
+    def __init__(self, host: str = "127.0.0.1", port: int = 8198, storage: Optional[FirewallStorage] = None, upstream_url: Optional[str] = None):
         self.host = host
         self.port = port
         self.storage = storage or FirewallStorage()

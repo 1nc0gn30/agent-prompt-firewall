@@ -103,12 +103,40 @@ def cmd_scan(args: argparse.Namespace):
 
 
 def cmd_stats(args: argparse.Namespace):
+    import json
+    import urllib.request
+
+    port = getattr(args, "port", 8098)
+    as_json = bool(getattr(args, "json", False))
+    live_health = None
+    live_stats = None
+    try:
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=2.0) as resp:
+            live_health = json.loads(resp.read().decode("utf-8"))
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/stats", timeout=2.0) as resp:
+            live_stats = json.loads(resp.read().decode("utf-8"))
+    except Exception:
+        pass
+
     storage = FirewallStorage(db_path=args.db)
-    stats = storage.get_stats()
+    stats = live_stats if live_stats is not None else storage.get_stats()
+
+    if as_json:
+        print(json.dumps({
+            "service": "agent-prompt-firewall",
+            "version": "2.5.0",
+            "online": live_health is not None,
+            "web_port": port,
+            "proxy_port": live_health.get("proxy_port", 8198) if live_health else 8198,
+            "health": live_health,
+            "stats": stats,
+        }, indent=2))
+        return
 
     print("=" * 60)
     print("  AGENT PROMPT FIREWALL • TELEMETRY STATS")
     print("=" * 60)
+    print(f"Daemon Endpoint:       http://127.0.0.1:{port} ({'ONLINE' if live_health else 'LOCAL DB'})")
     print(f"Total Prompts Scanned: {stats.get('total_scans', 0)}")
     print(f"Threats Blocked:       {stats.get('total_blocked', 0)}")
     print(f"Secrets/PII Redacted:  {stats.get('total_redactions', 0)}")
@@ -203,12 +231,17 @@ def main():
         prog="agent-firewall",
         description="Autonomous Zero-Dependency Security Proxy & Threat Radar for AI Agents"
     )
-    subparsers = parser.add_subparsers(dest="subcommand", required=True)
+    parser.add_argument("--version", action="version", version="agent-prompt-firewall 2.5.0")
+    parser.add_argument("--status", action="store_true", help="View firewall daemon status and telemetry")
+    parser.add_argument("--json", action="store_true", help="Emit telemetry in structured JSON")
+    parser.add_argument("--port", type=int, default=8098, help="Web UI dashboard port (default: 8098)")
+    parser.add_argument("--db", default="firewall.db", help="SQLite database path")
+    subparsers = parser.add_subparsers(dest="subcommand", required=False)
 
     # serve
     p_serve = subparsers.add_parser("serve", help="Launch Web Radar UI and Inline Proxy server")
     p_serve.add_argument("--web-port", type=int, default=8098, help="Web UI dashboard port (default: 8098)")
-    p_serve.add_argument("--proxy-port", type=int, default=8099, help="Inline proxy port (default: 8099)")
+    p_serve.add_argument("--proxy-port", type=int, default=8198, help="Inline proxy port (default: 8198)")
     p_serve.add_argument("--db", default="firewall.db", help="SQLite database path")
     p_serve.add_argument("--upstream", default=None, help="Upstream LLM target URL (optional)")
     p_serve.add_argument("--host", default="127.0.0.1", help="Bind address (default 127.0.0.1; use 0.0.0.0 only on trusted networks)")
@@ -223,12 +256,21 @@ def main():
     # stats
     p_stats = subparsers.add_parser("stats", help="View aggregated firewall telemetry")
     p_stats.add_argument("--db", default="firewall.db", help="SQLite database path")
+    p_stats.add_argument("--port", type=int, default=8098, help="Web UI dashboard port (default: 8098)")
+    p_stats.add_argument("--json", action="store_true", help="Emit telemetry in structured JSON")
     p_stats.set_defaults(func=cmd_stats)
+
+    # status
+    p_status = subparsers.add_parser("status", help="View firewall daemon status and telemetry")
+    p_status.add_argument("--db", default="firewall.db", help="SQLite database path")
+    p_status.add_argument("--port", type=int, default=8098, help="Web UI dashboard port (default: 8098)")
+    p_status.add_argument("--json", action="store_true", help="Emit telemetry in structured JSON")
+    p_status.set_defaults(func=cmd_stats)
 
     # run
     p_run = subparsers.add_parser("run", help="Execute an agent command with transparent firewall interception")
     p_run.add_argument("--web-port", type=int, default=8098, help="Web UI dashboard port")
-    p_run.add_argument("--proxy-port", type=int, default=8099, help="Inline proxy port")
+    p_run.add_argument("--proxy-port", type=int, default=8198, help="Inline proxy port")
     p_run.add_argument("--db", default="firewall.db", help="SQLite database path")
     p_run.add_argument("--upstream", default=None, help="Upstream LLM target URL (optional)")
     p_run.add_argument("cmd", nargs=argparse.REMAINDER, help="Command to run (prefixed by --)")
@@ -241,6 +283,12 @@ def main():
     p_test.set_defaults(func=cmd_test)
 
     parsed = parser.parse_args()
+    if getattr(parsed, "status", False) or (getattr(parsed, "json", False) and not parsed.subcommand):
+        cmd_stats(parsed)
+        return
+    if not parsed.subcommand:
+        parser.print_help()
+        return
     if hasattr(parsed, "cmd") and parsed.cmd and parsed.cmd[0] == "--":
         parsed.cmd = parsed.cmd[1:]
 

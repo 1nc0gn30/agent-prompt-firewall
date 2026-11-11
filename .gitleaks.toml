@@ -1,0 +1,8 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allowlist historical synthetic secret fixture in tests/test_firewall.py"
+commits = [
+  "57de10174e9df218f33c762c0b52a4147798ee78"
+]

@@ -1,10 +1,13 @@
 {
   "name": "agent-prompt-firewall",
   "version": "2.5.0",
-  "description": "Autonomous inline prompt injection defense, PII redactor, and threat radar for AI agents with dual Stripe + Solana checkout rails.",
+  "description": "Inline prompt-injection firewall, PII/secret redactor, and real-time threat radar for AI agents.",
   "scripts": {
-    "serve": "python3 -m http.server 8098 --directory public"
+    "start": "python3 server.py --web-port 8098 --proxy-port 8198",
+    "serve": "python3 server.py --web-port 8098 --proxy-port 8198",
+    "serve:public": "python3 -m http.server 8098 --directory public",
+    "test": "PYTHONPATH=src python3 -m pytest -q tests"
   },
-  "author": "1nc0gn30 (@1nc0gn30)",
+  "author": "1nc0gn30 (@1nc0gn30) • NullAI",
   "license": "MIT"
 }
