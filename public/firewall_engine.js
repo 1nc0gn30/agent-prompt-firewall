@@ -164,64 +164,22 @@
   // Check if running on local daemon port 8098/8099 vs static hosting / test runner
   const isLocalDaemon = (window.location.port === "8098" || window.location.port === "8099");
 
-  // --- License Management ---
+  // --- Open-Access Status (100% Free & Unlocked) ---
   function checkLicense() {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('licensed') === 'true' || urlParams.get('pro') === 'true' || urlParams.get('session_id')) {
-      localStorage.setItem('agent_firewall_pro', 'true');
-      localStorage.setItem('zoth_firewall_licensed', 'true');
-      localStorage.setItem('pro_licensed', 'true');
-      const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-      window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
-    }
-    state.isPro = (
-      localStorage.getItem('agent_firewall_pro') === 'true' ||
-      localStorage.getItem('zoth_firewall_licensed') === 'true' ||
-      localStorage.getItem('pro_licensed') === 'true'
-    );
-    updateProUI();
-  }
-
-  function activateKey(key) {
-    if (!key || key.trim().length < 4) return false;
-    localStorage.setItem('agent_firewall_pro', 'true');
-    localStorage.setItem('zoth_firewall_licensed', 'true');
-    localStorage.setItem('pro_licensed', 'true');
     state.isPro = true;
     updateProUI();
-    return true;
   }
 
-  window.activateLicenseKey = function(key) {
-    const k = (typeof key === 'string' && key) ? key : (document.getElementById('licenseKeyInput')?.value || '');
-    return activateKey(k);
-  };
-
-  window.openLicenseModal = function() {
-    // 100% Free & Open Access
-  };
-
   function updateProUI() {
-    const badges = [
-      document.getElementById('licenseBadge'),
-      document.getElementById('pro-badge'),
-      document.getElementById('proStatusBadge')
-    ].filter(Boolean);
-    const paywallBanner = document.getElementById('salesBanner') || document.getElementById('paywallBanner');
-    const paywallCard = document.getElementById('proLockedSection');
-    const complianceLockOverlay = document.getElementById('complianceLockOverlay');
-
-    badges.forEach(badge => {
+    const badge = document.getElementById('licenseBadge');
+    if (badge) {
       badge.innerHTML = '✦ 100% FREE & OPEN ACCESS';
       badge.classList.remove('badge-free');
-      badge.classList.add('badge-pro');
+      badge.classList.add('badge-open');
       badge.style.background = 'rgba(16,185,129,0.15)';
       badge.style.color = '#10B981';
       badge.style.border = '1px solid rgba(16,185,129,0.3)';
-    });
-    if (paywallBanner) paywallBanner.style.display = 'none';
-    if (paywallCard) paywallCard.classList.remove('frosted-locked');
-    if (complianceLockOverlay) complianceLockOverlay.style.display = 'none';
+    }
   }
 
   // --- Interactive UI Wiring ---
