@@ -4,18 +4,19 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-prompt-firewall"
-version = "0.1.0"
-description = "Autonomous zero-dependency inline security proxy and threat radar for AI agents"
+version = "2.6.0"
+description = "Autonomous zero-dependency inline security proxy, PII/secret redactor, and threat radar for AI agents"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [
-    {name = "1nc0gn30 • NullAI", email = "1nc0gn30@users.noreply.github.com"}
+    {name = "Neal Frazier Tech (@1nc0gn30) • NullAI Platform", email = "1nc0gn30@users.noreply.github.com"}
 ]
 dependencies = []
 
 [project.scripts]
 agent-firewall = "agent_prompt_firewall.cli:main"
+agent-prompt-firewall = "agent_prompt_firewall.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -23,4 +24,3 @@ where = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
-

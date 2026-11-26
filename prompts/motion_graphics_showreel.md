@@ -63,6 +63,6 @@ Sound Effect: Resonant cinematic brass chord and warm analog fade-out.
 [00:14 - 00:22] Feature Walkthrough:
   1. Direct & Indirect Prompt Injection Neutralizer.
   2. Automated High-Speed Secret & PII Scrubbing (OpenAI, Anthropic, AWS, Stripe, Luhn Credit Cards).
-  3. Real-Time Web Radar UI on Port 8098 + Proxy on Port 8099.
+  3. Real-Time Web Radar UI on Port 8098 + Proxy on Port 8198.
 [00:22 - 00:30] Resolution & Founding Member Pricing: Run locally in CI/CD or production containers. Get instant access for $0 lifetime.
 ```

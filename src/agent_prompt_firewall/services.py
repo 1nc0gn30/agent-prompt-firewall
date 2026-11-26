@@ -1,8 +1,9 @@
 """
 services.py - Unified Service Coordinator for Agent Prompt Firewall.
 Orchestrates Web Radar UI (port 8098) with SSE stream (/api/events/stream)
-and Inline Interception Proxy (port 8099).
+and Inline Interception Proxy (port 8198).
 Zero external dependencies (Python 3.10+ standard library).
+Engineered by Neal Frazier Tech (@1nc0gn30) • NullAI Platform
 """
 
 import time
@@ -24,7 +25,7 @@ class FirewallServicesManager:
         proxy_port: int = 8198,
         db_path: str = "firewall.db",
         upstream_url: Optional[str] = None,
-        block_threshold: float = 0.70
+        block_threshold: float = 0.70,
     ):
         self.web_host = web_host
         self.web_port = web_port
@@ -37,13 +38,16 @@ class FirewallServicesManager:
         self.web_server = WebRadarServer(
             host=self.web_host,
             port=self.web_port,
-            storage=self.storage
+            storage=self.storage,
+            proxy_port=self.proxy_port,
+            block_threshold=self.block_threshold,
         )
         self.proxy_service = ProxyService(
             host=self.proxy_host,
             port=self.proxy_port,
             storage=self.storage,
-            upstream_url=self.upstream_url
+            upstream_url=self.upstream_url,
+            block_threshold=self.block_threshold,
         )
 
     def start(self):
@@ -66,14 +70,16 @@ def start_services(
     web_port: int = 8098,
     proxy_port: int = 8198,
     db_path: str = "firewall.db",
-    upstream: Optional[str] = None
+    upstream: Optional[str] = None,
+    block_threshold: float = 0.70,
 ) -> FirewallServicesManager:
     """Convenience helper to spin up all firewall services with SSE endpoint /api/events/stream."""
     manager = FirewallServicesManager(
         web_port=web_port,
         proxy_port=proxy_port,
         db_path=db_path,
-        upstream_url=upstream
+        upstream_url=upstream,
+        block_threshold=block_threshold,
     )
     manager.start()
     return manager

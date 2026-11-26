@@ -1,0 +1,141 @@
+#!/usr/bin/env python3
+"""Agent Prompt Firewall v2.6.0 — Canonical ZothOS & Local CLI Wrapper.
+Probes /opt/agent-prompt-firewall (ZothOS ISO) and ~/NullAITech/agent-prompt-firewall.
+Engineered by Neal Frazier Tech (@1nc0gn30) • NullAI Platform
+"""
+import argparse
+import json
+import os
+import shutil
+import subprocess
+import sys
+import urllib.request
+
+TOOL_ID = "agent-prompt-firewall"
+TOOL_REPO = "agent-prompt-firewall"
+TOOL_NAME = "Agent Prompt Firewall"
+TOOL_DESC = (
+    "Zero-dependency inline LLM security proxy (:8198), prompt-injection detector, "
+    "PII/secret redactor, SHA-256 hash-chained audit ledger, SSE threat radar (:8098), and 4-tool stdio MCP server."
+)
+TOOL_VERSION = "2.6.0"
+TOOL_CATEGORY = "Security & Network"
+TOOL_PORT = 8098
+PROXY_PORT = 8198
+STUDIO_URL = f"http://127.0.0.1:3000/tools/{TOOL_ID}"
+LOCAL_PORT_URL = f"http://127.0.0.1:{TOOL_PORT}"
+PROXY_PORT_URL = f"http://127.0.0.1:{PROXY_PORT}"
+
+
+def resolve_repo_dir() -> str:
+    candidates = [
+        os.environ.get("AGENT_PROMPT_FIREWALL_HOME", ""),
+        "/opt/agent-prompt-firewall",
+        os.path.expanduser("~/NullAITech/agent-prompt-firewall"),
+        os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")),
+    ]
+    for cand in candidates:
+        if cand and os.path.isdir(os.path.join(cand, "src", "agent_prompt_firewall")):
+            return cand
+    return os.path.expanduser("~/NullAITech/agent-prompt-firewall")
+
+
+def main():
+    repo_dir = resolve_repo_dir()
+    pkg_dir = os.path.join(repo_dir, "src")
+    args = sys.argv[1:]
+
+    if "--electron" in args or (args and args[0] in ("desktop", "electron")):
+        rem = [a for a in args if a not in ("--electron", "desktop", "electron")]
+        elec = shutil.which("electron") or "/usr/local/bin/electron"
+        sys.exit(subprocess.run([elec, os.path.join(repo_dir, "electron", "main.cjs")] + rem, cwd=repo_dir).returncode)
+
+    if "--tui" in args or (args and args[0] == "tui"):
+        rem = [a for a in args if a not in ("--tui", "tui")]
+        tui_bin = shutil.which(f"{TOOL_ID}-tui") or os.path.join(repo_dir, "bin", f"{TOOL_ID}-tui")
+        sys.exit(subprocess.run([tui_bin] + rem).returncode)
+
+    subcommands = {"serve", "scan", "stats", "status", "mcp", "run", "test"}
+
+    if args and (args[0] in subcommands or (args[0] in ("-h", "--help") and len(args) > 1)):
+        env = os.environ.copy()
+        env["PYTHONPATH"] = pkg_dir + os.pathsep + env.get("PYTHONPATH", "")
+        res = subprocess.run([sys.executable, "-m", "agent_prompt_firewall.cli"] + args, cwd=repo_dir, env=env)
+        sys.exit(res.returncode)
+
+    parser = argparse.ArgumentParser(
+        prog=TOOL_ID,
+        description=f"{TOOL_NAME} (v{TOOL_VERSION}) — {TOOL_DESC}",
+    )
+    parser.add_argument("--version", action="version", version=f"{TOOL_ID} v{TOOL_VERSION}")
+    parser.add_argument("--status", action="store_true", help="Check local installation & daemon status")
+    parser.add_argument("--json", action="store_true", help="Output deterministic JSON telemetry")
+    parser.add_argument("--ui", action="store_true", help="Print local workbench URL")
+    parser.add_argument("payload", nargs="*", help="Subcommands: serve, scan, stats, status, mcp, run, test")
+    parsed, _unknown = parser.parse_known_args(args)
+
+    if parsed.payload and parsed.payload[0] in subcommands:
+        env = os.environ.copy()
+        env["PYTHONPATH"] = pkg_dir + os.pathsep + env.get("PYTHONPATH", "")
+        res = subprocess.run([sys.executable, "-m", "agent_prompt_firewall.cli"] + args, cwd=repo_dir, env=env)
+        sys.exit(res.returncode)
+
+    if parsed.ui:
+        print(LOCAL_PORT_URL)
+        return
+
+    is_live = False
+    live_health = None
+    try:
+        with urllib.request.urlopen(f"http://127.0.0.1:{TOOL_PORT}/health", timeout=1.0) as resp:
+            if resp.status == 200:
+                is_live = True
+                live_health = json.loads(resp.read().decode("utf-8"))
+    except Exception:
+        pass
+
+    info = {
+        "id": TOOL_ID,
+        "repo": TOOL_REPO,
+        "name": TOOL_NAME,
+        "version": TOOL_VERSION,
+        "category": TOOL_CATEGORY,
+        "installed": os.path.isdir(os.path.join(pkg_dir, "agent_prompt_firewall")),
+        "repo_path": repo_dir,
+        "native_cli": os.path.join(pkg_dir, "agent_prompt_firewall", "cli.py"),
+        "studio_workbench_url": STUDIO_URL,
+        "local_endpoint": LOCAL_PORT_URL,
+        "proxy_endpoint": PROXY_PORT_URL,
+        "daemon_live": is_live,
+        "health": live_health,
+        "mcp_command": f"{TOOL_ID} mcp",
+        "license": "100% Free & Open Access (Zero Paywalls)",
+        "support": {
+            "stripe_buy_coffee": "https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X",
+            "solana_wallet": "GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK",
+        },
+        "status": "ACTIVE" if is_live else "READY",
+    }
+
+    if parsed.json:
+        print(json.dumps(info, indent=2))
+        return
+
+    print(f"✦ {TOOL_NAME} (v{TOOL_VERSION}) — [{TOOL_CATEGORY}]")
+    print(f"  Repository : {repo_dir}")
+    print(f"  Workbench  : {STUDIO_URL}")
+    print(f"  Web Radar  : {LOCAL_PORT_URL} (Daemon: {'ACTIVE' if is_live else 'OFFLINE'})")
+    print(f"  Proxy Port : {PROXY_PORT_URL}")
+    print("  MCP Server : agent-prompt-firewall mcp (4 live JSON-RPC 2.0 tools)")
+    print("  Attribution: Engineered by Neal Frazier Tech (@1nc0gn30) • NullAI Platform")
+    print("\nSubcommands:")
+    print("  agent-prompt-firewall serve      Launch Web Radar (:8098) & Inline Proxy (:8198)")
+    print("  agent-prompt-firewall scan <p>   Scan prompt for injections & scrub secrets/PII")
+    print("  agent-prompt-firewall stats      View aggregated telemetry & SHA-256 chain status")
+    print("  agent-prompt-firewall status     Alias for live daemon status & telemetry")
+    print("  agent-prompt-firewall mcp        Run JSON-RPC 2.0 stdio MCP server")
+    print("  agent-prompt-firewall run -- <c> Execute command routed through proxy :8198")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,13 +1,13 @@
 {
   "name": "agent-prompt-firewall",
-  "version": "2.5.0",
-  "description": "Inline prompt-injection firewall, PII/secret redactor, and real-time threat radar for AI agents.",
+  "version": "2.6.0",
+  "description": "Inline prompt-injection firewall, PII/secret redactor, real-time SSE threat radar (:8098), inline proxy (:8198), and 4-tool stdio MCP server for AI agents.",
   "scripts": {
-    "start": "python3 server.py --web-port 8098 --proxy-port 8198",
-    "serve": "python3 server.py --web-port 8098 --proxy-port 8198",
-    "serve:public": "python3 -m http.server 8098 --directory public",
+    "start": "python3 server.py --host 127.0.0.1 --web-port 8098 --proxy-port 8198",
+    "serve": "python3 server.py --host 127.0.0.1 --web-port 8098 --proxy-port 8198",
+    "mcp": "PYTHONPATH=src python3 -m agent_prompt_firewall.cli mcp",
     "test": "PYTHONPATH=src python3 -m pytest -q tests"
   },
-  "author": "1nc0gn30 (@1nc0gn30) • NullAI",
+  "author": "Neal Frazier Tech (@1nc0gn30) • NullAI Platform",
   "license": "MIT"
 }

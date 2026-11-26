@@ -7,50 +7,50 @@
     </linearGradient>
     <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#D4AF37"/>
-      <stop offset="100%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#10B981"/>
     </linearGradient>
     <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
-      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="rgba(255,255,255,0.035)" stroke-width="1"/>
     </pattern>
   </defs>
 
-  <rect width="1200" height="320" rx="18" fill="url(#bg)" stroke="#D4AF37" stroke-opacity="0.5" stroke-width="1.5"/>
+  <rect width="1200" height="320" rx="18" fill="url(#bg)" stroke="#D4AF37" stroke-opacity="0.55" stroke-width="1.5"/>
   <rect width="1200" height="320" rx="18" fill="url(#grid)"/>
 
   <!-- Emblem -->
   <g transform="translate(52, 48)">
-    <rect width="78" height="78" rx="18" fill="url(#accent)" opacity="0.92"/>
+    <rect width="78" height="78" rx="18" fill="url(#accent)" opacity="0.94"/>
     <polygon points="39,14 62,27 62,51 39,64 16,51 16,27" fill="#08080B" stroke="#FFFFFF" stroke-width="2"/>
     <circle cx="39" cy="39" r="7" fill="#D4AF37"/>
   </g>
 
   <!-- Header Copy -->
   <g transform="translate(152, 62)">
-    <rect x="0" y="-14" width="420" height="22" rx="11" fill="rgba(255,255,255,0.06)" stroke="#D4AF37" stroke-opacity="0.45"/>
-    <text x="12" y="1" fill="#D4AF37" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" letter-spacing="1.1">SOVEREIGN // NULLAI ENGINE // PORT :8098</text>
-    <text x="0" y="34" fill="#FFFFFF" font-family="Syne, Space Grotesk, sans-serif" font-size="30" font-weight="800" letter-spacing="0.4">AGENT PROMPT FIREWALL</text>
-    <text x="0" y="60" fill="#94A3B8" font-family="Inter, sans-serif" font-size="13.5">Autonomous inline prompt injection defense, PII redactor, and threat radar for AI agents.</text>
+    <rect x="0" y="-14" width="465" height="22" rx="11" fill="rgba(255,255,255,0.06)" stroke="#D4AF37" stroke-opacity="0.45"/>
+    <text x="14" y="1" fill="#D4AF37" font-family="ui-monospace, Menlo, monospace" font-size="10.5" font-weight="700" letter-spacing="1.0">AGENT PROMPT FIREWALL v2.6.0 • RADAR :8098 • PROXY :8198</text>
+    <text x="0" y="34" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="30" font-weight="800" letter-spacing="0.3">AGENT PROMPT FIREWALL</text>
+    <text x="0" y="60" fill="#94A3B8" font-family="system-ui, -apple-system, sans-serif" font-size="13.5">Zero-dependency inline LLM security proxy, PII/secret redactor, SHA-256 audit ledger, and 4-tool stdio MCP.</text>
   </g>
 
   <!-- 3 Feature Cards -->
   <g transform="translate(52, 168)">
     <rect x="0" y="0" width="352" height="98" rx="12" fill="#101320" stroke="#D4AF37" stroke-opacity="0.38"/>
-    <text x="18" y="30" fill="#D4AF37" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700">PILLAR 01 // CAPABILITY</text>
-    <text x="18" y="56" fill="#FFFFFF" font-family="Space Grotesk, sans-serif" font-size="14" font-weight="700">Zero-Egress Client Enclave</text>
-    <text x="18" y="78" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="10.5">Verified Client &amp; Enclave Runtime</text>
+    <text x="18" y="30" fill="#D4AF37" font-family="ui-monospace, Menlo, monospace" font-size="10" font-weight="700">PILLAR 01 // DETECTION</text>
+    <text x="18" y="56" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="14" font-weight="700">Multi-Layer De-obfuscation</text>
+    <text x="18" y="78" fill="#94A3B8" font-family="ui-monospace, Menlo, monospace" font-size="10.5">Homoglyphs • HTML • ROT13 • B64/Zlib</text>
 
-    <rect x="372" y="0" width="352" height="98" rx="12" fill="#101320" stroke="#38BDF8" stroke-opacity="0.38"/>
-    <text x="390" y="30" fill="#38BDF8" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700">PILLAR 02 // ARCHITECTURE</text>
-    <text x="390" y="56" fill="#FFFFFF" font-family="Space Grotesk, sans-serif" font-size="14" font-weight="700">Real-Time Telemetry &amp; AST</text>
-    <text x="390" y="78" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="10.5">Mode: BROWSER • Port :8098</text>
+    <rect x="372" y="0" width="352" height="98" rx="12" fill="#101320" stroke="#10B981" stroke-opacity="0.42"/>
+    <text x="390" y="30" fill="#10B981" font-family="ui-monospace, Menlo, monospace" font-size="10" font-weight="700">PILLAR 02 // ARCHITECTURE</text>
+    <text x="390" y="56" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="14" font-weight="700">Inline Proxy &amp; SSE Radar</text>
+    <text x="390" y="78" fill="#94A3B8" font-family="ui-monospace, Menlo, monospace" font-size="10.5">Mode: LOCAL DAEMON :8098/:8198</text>
 
     <rect x="744" y="0" width="352" height="98" rx="12" fill="#101320" stroke="#D4AF37" stroke-opacity="0.38"/>
-    <text x="762" y="30" fill="#D4AF37" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700">PILLAR 03 // ECOSYSTEM</text>
-    <text x="762" y="56" fill="#FFFFFF" font-family="Space Grotesk, sans-serif" font-size="14" font-weight="700">Zoth Studio &amp; ZothOS Native</text>
-    <text x="762" y="78" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="10.5">Zoth Studio v2 (:3000) &amp; ZothOS v3.3</text>
+    <text x="762" y="30" fill="#D4AF37" font-family="ui-monospace, Menlo, monospace" font-size="10" font-weight="700">PILLAR 03 // ECOSYSTEM</text>
+    <text x="762" y="56" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="14" font-weight="700">SHA-256 Ledger &amp; Stdio MCP</text>
+    <text x="762" y="78" fill="#94A3B8" font-family="ui-monospace, Menlo, monospace" font-size="10.5">Zoth Studio v2 (:3000) &amp; ZothOS v3.4</text>
   </g>
 
-  <text x="600" y="298" text-anchor="middle" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="10.5">
-    ENGINEERED BY 1NC0GN30 • NULLAI (@1nc0gn30)  •  NULLAI PLATFORM  •  ZOTH.NULLAI.TECH
+  <text x="600" y="298" text-anchor="middle" fill="#94A3B8" font-family="ui-monospace, Menlo, monospace" font-size="10.5">
+    ENGINEERED BY NEAL FRAZIER TECH (@1nc0gn30) • NULLAI PLATFORM • ZOTH.NULLAI.TECH
   </text>
 </svg>

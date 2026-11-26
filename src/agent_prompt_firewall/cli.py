@@ -1,21 +1,26 @@
 """
 cli.py - Command Line Interface for Agent Prompt Firewall.
 Zero external dependencies (Python 3.10+ standard library).
+Engineered by Neal Frazier Tech (@1nc0gn30) • NullAI Platform
 """
 
 import argparse
+import json
 import os
 import socket
 import subprocess
 import sys
 import time
-from typing import List, Optional
+import urllib.request
 
 from .detector import ThreatDetector
-from .redactor import Redactor
-from .storage import FirewallStorage
+from .mcp_server import run_mcp_server
 from .proxy import ProxyService
+from .redactor import Redactor
 from .server import WebRadarServer
+from .storage import FirewallStorage
+
+VERSION = "2.6.0"
 
 
 def is_port_in_use(port: int, host: str = "127.0.0.1") -> bool:
@@ -29,19 +34,32 @@ def cmd_serve(args: argparse.Namespace):
     proxy_port = args.proxy_port
     db_path = args.db
     upstream = args.upstream
+    threshold = args.threshold
 
     storage = FirewallStorage(db_path=db_path)
-    
+
     print("=" * 68)
-    print("  AGENT PROMPT FIREWALL • Autonomous Inline Security Proxy")
+    print(f"  AGENT PROMPT FIREWALL v{VERSION} • Autonomous Inline Security Proxy")
     print("  Real-Time Prompt Injection Defense & Data Leak Prevention")
     print("=" * 68)
 
     host = args.host
     if host not in ("127.0.0.1", "localhost", "::1"):
         print(f"[!] WARNING: binding to {host} exposes the proxy and radar to your network.")
-    web_server = WebRadarServer(host=host, port=web_port, storage=storage)
-    proxy_service = ProxyService(host=host, port=proxy_port, storage=storage, upstream_url=upstream)
+    web_server = WebRadarServer(
+        host=host,
+        port=web_port,
+        storage=storage,
+        proxy_port=proxy_port,
+        block_threshold=threshold,
+    )
+    proxy_service = ProxyService(
+        host=host,
+        port=proxy_port,
+        storage=storage,
+        upstream_url=upstream,
+        block_threshold=threshold,
+    )
 
     try:
         web_server.start()
@@ -49,10 +67,11 @@ def cmd_serve(args: argparse.Namespace):
         print(f"[*] Web Radar UI:        http://{host}:{web_port}/")
         print(f"[*] Inline Proxy:        http://{host}:{proxy_port}/")
         print(f"[*] Intercepted Base:    http://{host}:{proxy_port}/v1")
+        print(f"[*] Block Threshold:     {threshold:.2f}")
         if upstream:
             print(f"[*] Target Upstream:     {upstream}")
         else:
-            print(f"[*] Target Upstream:     None (Autonomous Zero-Cost Mock Echo)")
+            print("[*] Target Upstream:     None (Autonomous Zero-Cost Mock Echo)")
         print("-" * 68)
         print("Press Ctrl+C to stop services.")
         while True:
@@ -65,21 +84,38 @@ def cmd_serve(args: argparse.Namespace):
 
 
 def cmd_scan(args: argparse.Namespace):
-    prompt = args.prompt
+    prompt = args.text if getattr(args, "text", None) is not None else args.prompt
+    if prompt is None:
+        print("Error: Provide prompt text positionally or via --text.", file=sys.stderr)
+        sys.exit(2)
+
     detector = ThreatDetector(block_threshold=args.threshold)
     redactor = Redactor()
 
     start = time.perf_counter()
     assessment = detector.evaluate(prompt)
     redaction = redactor.redact(prompt)
-    duration_ms = (time.perf_counter() - start) * 1000
+    assessment.details = [redactor.redact(d).redacted_text for d in assessment.details]
+    duration_ms = round((time.perf_counter() - start) * 1000, 2)
+
+    if getattr(args, "json", False):
+        print(json.dumps({
+            "version": VERSION,
+            "blocked": assessment.should_block,
+            "threshold": args.threshold,
+            "threat": assessment.to_dict(),
+            "redaction": redaction.to_dict(),
+            "sanitized_prompt": redaction.redacted_text,
+            "duration_ms": duration_ms,
+        }, indent=2))
+        return
 
     print("=" * 60)
-    print("  AGENT PROMPT FIREWALL • THREAT SCAN REPORT")
+    print(f"  AGENT PROMPT FIREWALL v{VERSION} • THREAT SCAN REPORT")
     print("=" * 60)
     print(f"Threat Score:          {assessment.score:.2f} / 1.00")
     print(f"Threat Classification: {assessment.threat_type}")
-    print(f"Block Decision:        {'BLOCKED 🚫' if assessment.should_block else 'PERMITTED ✅'}")
+    print(f"Block Decision:        {'BLOCKED' if assessment.should_block else 'PERMITTED'}")
     print(f"Latency:               {duration_ms:.2f}ms")
     print(f"Shannon Entropy:       {assessment.entropy:.2f} bits/symbol")
 
@@ -103,9 +139,6 @@ def cmd_scan(args: argparse.Namespace):
 
 
 def cmd_stats(args: argparse.Namespace):
-    import json
-    import urllib.request
-
     port = getattr(args, "port", 8098)
     as_json = bool(getattr(args, "json", False))
     live_health = None
@@ -120,28 +153,32 @@ def cmd_stats(args: argparse.Namespace):
 
     storage = FirewallStorage(db_path=args.db)
     stats = live_stats if live_stats is not None else storage.get_stats()
+    chain = storage.verify_chain()
 
     if as_json:
         print(json.dumps({
             "service": "agent-prompt-firewall",
-            "version": "2.5.0",
+            "version": VERSION,
             "online": live_health is not None,
             "web_port": port,
             "proxy_port": live_health.get("proxy_port", 8198) if live_health else 8198,
             "health": live_health,
             "stats": stats,
+            "chain_verification": chain,
         }, indent=2))
         return
 
     print("=" * 60)
-    print("  AGENT PROMPT FIREWALL • TELEMETRY STATS")
+    print(f"  AGENT PROMPT FIREWALL v{VERSION} • TELEMETRY STATS")
     print("=" * 60)
     print(f"Daemon Endpoint:       http://127.0.0.1:{port} ({'ONLINE' if live_health else 'LOCAL DB'})")
+    print(f"Inline Proxy Port:     {live_health.get('proxy_port', 8198) if live_health else 8198}")
     print(f"Total Prompts Scanned: {stats.get('total_scans', 0)}")
     print(f"Threats Blocked:       {stats.get('total_blocked', 0)}")
     print(f"Secrets/PII Redacted:  {stats.get('total_redactions', 0)}")
     print(f"Clean Traffic Rate:    {stats.get('clean_rate', 100.0)}%")
     print(f"Average Latency:       {stats.get('avg_latency_ms', 0.0)}ms")
+    print(f"Audit Chain Valid:     {'YES' if chain.get('valid') else 'TAMPERED'} ({chain.get('verified_entries', 0)} entries)")
 
     breakdown = stats.get("threat_breakdown", {})
     if breakdown:
@@ -149,6 +186,10 @@ def cmd_stats(args: argparse.Namespace):
         for t_type, count in breakdown.items():
             print(f"  • {t_type.ljust(10)}: {count}")
     print("=" * 60)
+
+
+def cmd_mcp(args: argparse.Namespace):
+    run_mcp_server(db_path=args.db, web_port=args.port, block_threshold=args.threshold)
 
 
 def cmd_run(args: argparse.Namespace):
@@ -166,7 +207,7 @@ def cmd_run(args: argparse.Namespace):
 
     if not proxy_was_running:
         print(f"[*] Starting local Firewall Proxy on port {proxy_port}...")
-        web_server = WebRadarServer(host="127.0.0.1", port=web_port, storage=storage)
+        web_server = WebRadarServer(host="127.0.0.1", port=web_port, storage=storage, proxy_port=proxy_port)
         proxy_service = ProxyService(host="127.0.0.1", port=proxy_port, storage=storage, upstream_url=args.upstream)
         web_server.start()
         proxy_service.start()
@@ -204,7 +245,7 @@ def cmd_run(args: argparse.Namespace):
                 proxy_service.stop()
 
     print("\n" + "=" * 60)
-    print("  AGENT PROMPT FIREWALL • RUN SESSION REPORT")
+    print(f"  AGENT PROMPT FIREWALL v{VERSION} • RUN SESSION REPORT")
     print("=" * 60)
     print(f"  Session Duration:      {total_time}s")
     print(f"  Child Exit Code:       {exit_code}")
@@ -215,7 +256,7 @@ def cmd_run(args: argparse.Namespace):
 def cmd_test(args: argparse.Namespace):
     """Run pytest test suite."""
     print("=" * 60)
-    print("  AGENT PROMPT FIREWALL • RUNNING TEST SUITE")
+    print(f"  AGENT PROMPT FIREWALL v{VERSION} • RUNNING TEST SUITE")
     print("=" * 60)
     test_cmd = [sys.executable, "-m", "pytest", "tests/"]
     if getattr(args, "verbose", False):
@@ -228,10 +269,10 @@ def cmd_test(args: argparse.Namespace):
 
 def main():
     parser = argparse.ArgumentParser(
-        prog="agent-firewall",
-        description="Autonomous Zero-Dependency Security Proxy & Threat Radar for AI Agents"
+        prog="agent-prompt-firewall",
+        description="Autonomous Zero-Dependency Security Proxy, Threat Radar & MCP Server for AI Agents",
     )
-    parser.add_argument("--version", action="version", version="agent-prompt-firewall 2.5.0")
+    parser.add_argument("--version", action="version", version=f"agent-prompt-firewall {VERSION}")
     parser.add_argument("--status", action="store_true", help="View firewall daemon status and telemetry")
     parser.add_argument("--json", action="store_true", help="Emit telemetry in structured JSON")
     parser.add_argument("--port", type=int, default=8098, help="Web UI dashboard port (default: 8098)")
@@ -239,18 +280,21 @@ def main():
     subparsers = parser.add_subparsers(dest="subcommand", required=False)
 
     # serve
-    p_serve = subparsers.add_parser("serve", help="Launch Web Radar UI and Inline Proxy server")
-    p_serve.add_argument("--web-port", type=int, default=8098, help="Web UI dashboard port (default: 8098)")
+    p_serve = subparsers.add_parser("serve", help="Launch Web Radar UI (:8098) and Inline Proxy (:8198)")
+    p_serve.add_argument("--web-port", "--port", dest="web_port", type=int, default=8098, help="Web UI dashboard port (default: 8098)")
     p_serve.add_argument("--proxy-port", type=int, default=8198, help="Inline proxy port (default: 8198)")
     p_serve.add_argument("--db", default="firewall.db", help="SQLite database path")
     p_serve.add_argument("--upstream", default=None, help="Upstream LLM target URL (optional)")
-    p_serve.add_argument("--host", default="127.0.0.1", help="Bind address (default 127.0.0.1; use 0.0.0.0 only on trusted networks)")
+    p_serve.add_argument("--threshold", type=float, default=0.70, help="Threat blocking threshold (default: 0.70)")
+    p_serve.add_argument("--host", default="127.0.0.1", help="Bind address (default 127.0.0.1)")
     p_serve.set_defaults(func=cmd_serve)
 
     # scan
     p_scan = subparsers.add_parser("scan", help="Scan a prompt for injection attacks and sensitive data")
-    p_scan.add_argument("prompt", help="Prompt text to analyze")
-    p_scan.add_argument("--threshold", type=float, default=0.70, help="Threat blocking threshold (0.0 to 1.0)")
+    p_scan.add_argument("prompt", nargs="?", default=None, help="Prompt text to analyze")
+    p_scan.add_argument("--text", default=None, help="Prompt text to analyze (flag form)")
+    p_scan.add_argument("--threshold", type=float, default=0.70, help="Threat blocking threshold (0.05 to 0.99)")
+    p_scan.add_argument("--json", action="store_true", help="Output scan verdict as JSON")
     p_scan.set_defaults(func=cmd_scan)
 
     # stats
@@ -267,10 +311,17 @@ def main():
     p_status.add_argument("--json", action="store_true", help="Emit telemetry in structured JSON")
     p_status.set_defaults(func=cmd_stats)
 
+    # mcp
+    p_mcp = subparsers.add_parser("mcp", help="Run JSON-RPC 2.0 stdio MCP server (4 live tools)")
+    p_mcp.add_argument("--db", default="firewall.db", help="SQLite database path")
+    p_mcp.add_argument("--port", type=int, default=8098, help="Web UI dashboard port (default: 8098)")
+    p_mcp.add_argument("--threshold", type=float, default=0.70, help="Default threat blocking threshold")
+    p_mcp.set_defaults(func=cmd_mcp)
+
     # run
     p_run = subparsers.add_parser("run", help="Execute an agent command with transparent firewall interception")
-    p_run.add_argument("--web-port", type=int, default=8098, help="Web UI dashboard port")
-    p_run.add_argument("--proxy-port", type=int, default=8198, help="Inline proxy port")
+    p_run.add_argument("--web-port", type=int, default=8098, help="Web UI dashboard port (default: 8098)")
+    p_run.add_argument("--proxy-port", type=int, default=8198, help="Inline proxy port (default: 8198)")
     p_run.add_argument("--db", default="firewall.db", help="SQLite database path")
     p_run.add_argument("--upstream", default=None, help="Upstream LLM target URL (optional)")
     p_run.add_argument("cmd", nargs=argparse.REMAINDER, help="Command to run (prefixed by --)")
